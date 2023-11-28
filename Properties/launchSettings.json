@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "AdventOfCode8": {
+      "commandName": "Project"
+    },
+    "Else results": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\Projekt\\AdventOfCode8\\Input\\Else.json"
+    }
+  }
+}
