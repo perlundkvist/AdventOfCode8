@@ -13,6 +13,7 @@ namespace AdventOfCode8
             var json = File.ReadAllText(filename);
             var document = JsonDocument.Parse(json);
             var codeEvent = document.RootElement.GetProperty("event").GetString();
+            ArgumentNullException.ThrowIfNull(codeEvent);
             var year = int.Parse(codeEvent);
             var members = JsonDocument.Parse(document.RootElement.GetProperty("members").ToString());
 
@@ -20,12 +21,17 @@ namespace AdventOfCode8
 
             foreach (var member in members.RootElement.EnumerateObject())
             {
-                var player = new Player { Id = member.Name, };
-                players.Add(player);
                 var memberData = JsonDocument.Parse(member.Value.ToString());
-                player.Name = memberData.RootElement.GetProperty("name").GetString();
-                player.Points = memberData.RootElement.GetProperty("local_score").GetInt32();
+                var player = new Player(member.Name ?? "Okänd",
+                    memberData?.RootElement.GetProperty("name").GetString() ?? "Okänd",
+                    memberData?.RootElement.GetProperty("local_score").GetInt32() ?? 0
+                );
+                players.Add(player);
+                if (memberData == null)
+                    continue;
                 var days = JsonDocument.Parse(memberData.RootElement.GetProperty("completion_day_level").ToString());
+                if (days == null)
+                    continue;
                 foreach (var day in days.RootElement.EnumerateObject())
                 {
                     var dayScore = new Player.DayScore { Day = int.Parse(day.Name) };
@@ -93,12 +99,8 @@ namespace AdventOfCode8
             Console.WriteLine($"{DateTime.Now:g}");
         }
 
-        internal class Player
+        internal record Player(string Id, string Name, int Points)
         {
-            public string Id { get; set; }
-            public string Name { get; set; }
-            public int Points;
-
             public List<DayScore> DayScores { get; } = new List<DayScore>();
 
             public class DayScore
