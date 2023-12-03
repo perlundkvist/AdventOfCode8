@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text.Json;
 
 namespace AdventOfCode8
 {
     class ElseResults
     {
-        public static void Create(string filename)
+        public static void Create(string json)
         {
-            var json = File.ReadAllText(filename);
             var document = JsonDocument.Parse(json);
             var codeEvent = document.RootElement.GetProperty("event").GetString();
             ArgumentNullException.ThrowIfNull(codeEvent);
@@ -97,6 +97,8 @@ namespace AdventOfCode8
             Console.WriteLine();
             Console.WriteLine($"Uppdaterad");
             Console.WriteLine($"{DateTime.Now:g}");
+
+            //Clipboard.SetData(DataFormats.Text, (Object)textData);
         }
 
         internal record Player(string Id, string Name, int Points)
@@ -113,6 +115,30 @@ namespace AdventOfCode8
                 public DateTime CompletedDate1;
                 public DateTime? CompletedDate2;
             }
+        }
+
+        public static string GetTopList()
+        {
+            try
+            {
+                var cookieValue = "53616c7465645f5f18af7d51b4dc80ac0c22d2311ab298fc349f11d90bf592a3f6622eb9f9ca97898e90db864627b285f327f2e284c62182a7da7cd7f71e7cee";
+                var cookieContainer = new CookieContainer();
+                var cookie = new Cookie("session", cookieValue) { Domain = ".adventofcode.com" };
+                cookieContainer.Add(cookie);
+                using var handler = new HttpClientHandler() { CookieContainer = cookieContainer };
+                using var client = new HttpClient(handler);
+                var response = client.GetAsync("https://adventofcode.com/2023/leaderboard/private/view/1013538.json").Result;
+                if (response != null && response.IsSuccessStatusCode)
+                    return response.Content.ReadAsStringAsync().Result;
+                Console.WriteLine(response?.ToString() ?? "Null response");
+                return "";
+            }
+            catch (Exception err) 
+            {
+                Console.WriteLine(err.ToString());
+                return ""; 
+            }
+
         }
     }
 }

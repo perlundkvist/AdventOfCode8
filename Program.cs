@@ -4,7 +4,9 @@
 if (args.Any())
 {
     //ElseResults.Create(@"C:\Projekt\AdventOfCode3\Input\Else.json");
-    ElseResults.Create(args.First());
+    var json = ElseResults.GetTopList();
+    if (json != "")
+        ElseResults.Create(json);
     return;
 }
 
