@@ -6,6 +6,10 @@
     "Else results": {
       "commandName": "Project",
       "commandLineArgs": "C:\\Projekt\\AdventOfCode8\\Input\\Else.json"
+    },
+    "From web": {
+      "commandName": "Project",
+      "commandLineArgs": "Web"
     }
   }
 }

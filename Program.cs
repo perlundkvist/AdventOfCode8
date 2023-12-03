@@ -4,9 +4,12 @@
 if (args.Any())
 {
     //ElseResults.Create(@"C:\Projekt\AdventOfCode3\Input\Else.json");
-    var json = ElseResults.GetTopList();
+    var json = args.First() == "Web" ? ElseResults.GetTopList() : File.ReadAllText(args.First());
     if (json != "")
         ElseResults.Create(json);
+
+    Console.WriteLine();
+    Console.WriteLine($"Source: {args.First()}");
     return;
 }
 

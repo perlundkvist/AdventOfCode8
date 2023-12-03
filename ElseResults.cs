@@ -97,8 +97,6 @@ namespace AdventOfCode8
             Console.WriteLine();
             Console.WriteLine($"Uppdaterad");
             Console.WriteLine($"{DateTime.Now:g}");
-
-            //Clipboard.SetData(DataFormats.Text, (Object)textData);
         }
 
         internal record Player(string Id, string Name, int Points)
