@@ -10,7 +10,7 @@ namespace AdventOfCode8.Aoc2023
     {
         internal void Run()
         {
-            var input = GetInput("2023_04s");
+            var input = GetInput("2023_04");
 
             var sum = GetSum(input);
             Console.WriteLine($"Sum: {sum}");
@@ -34,21 +34,29 @@ namespace AdventOfCode8.Aoc2023
             var cards = new List<Card>();
             for (var i = 0; i < input.Count; i++)
             {
-                var card = cards.FirstOrDefault(c => c.Id == i);
-                if (card == null)
-                {
-                    card = new Card(i);
-                    cards.Add(card);
-                }
+                var card = GetCard(i, cards);
                 var winners = GetWinners(input[i]);
-
+                for (var j = 0; j < winners; j++)
+                {
+                    var card2 = GetCard(i + j + 1, cards);
+                    card2.Count += card.Count;
+                }
             }
 
             return cards.Sum(c => c.Count);
         }
 
+        private static Card GetCard(int i, ICollection<Card> cards)
+        {
+            var card = cards.FirstOrDefault(c => c.Id == i);
+            if (card != null) return card;
+            card = new Card(i);
+            cards.Add(card);
+            return card;
+        }
 
-        private int GetPoints(string line)
+
+        private static int GetPoints(string line)
         {
             var split = line.Split(':', '|');
             var winning = split[1].Trim().Split(' ').ToList();
@@ -60,7 +68,7 @@ namespace AdventOfCode8.Aoc2023
             return winners.Any() ? (int)Math.Pow(2, winners.Count() - 1) : 0;
         }
 
-        private int GetWinners(string line)
+        private static int GetWinners(string line)
         {
             var split = line.Split(':', '|');
             var winning = split[1].Trim().Split(' ').ToList();
