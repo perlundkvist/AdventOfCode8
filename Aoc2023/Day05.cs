@@ -79,9 +79,22 @@ namespace AdventOfCode8.Aoc2023
             return locations.Min(l => l.Location);
         }
 
-        private long GetLowest2(List<Tuple<long, long>> seeds, ImmutableList<Map> maps)
+        private static long GetLowest2(List<Tuple<long, long>> seeds, ImmutableList<Map> maps)
         {
-            throw new NotImplementedException();
+            var lowest = long.MaxValue;
+            foreach (var seed in seeds)
+            {
+                var lastSeed = seed.Item1 + seed.Item2;
+                for (var i = seed.Item1; i <= lastSeed ; i++)
+                {
+                    var location = GetLocation(i, maps);
+                    if (location < lowest)
+                        lowest = location;
+                    if (i % 100000 == 0)
+                        Console.WriteLine($"i: {i} ({lastSeed})");
+                }
+            }
+            return lowest;
         }
 
         private static long GetLocation(long seed, ImmutableList<Map> maps)
