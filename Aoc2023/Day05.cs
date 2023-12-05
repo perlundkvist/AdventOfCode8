@@ -11,7 +11,7 @@ namespace AdventOfCode8.Aoc2023
     {
         internal void Run()
         {
-            var input = GetInput("2023_05");
+            var input = GetInput("2023_05s");
 
             var seeds = GetSeeds(input.First());
             var maps = GetMaps(input[2..]);
@@ -19,10 +19,12 @@ namespace AdventOfCode8.Aoc2023
             var lowest = GetLowest(seeds, maps);
             Console.WriteLine($"Lowest: {lowest}");
 
+            var maps2 = InitMaps2(maps);
             var seeds2 = GetSeeds2(input.First());
-            lowest = GetLowest2(seeds2, maps);
+            lowest = GetLowest2(seeds2, maps, maps2);
             Console.WriteLine($"Lowest2: {lowest}");
         }
+
 
         private List<long> GetSeeds(string input)
         {
@@ -37,7 +39,7 @@ namespace AdventOfCode8.Aoc2023
             var split = input.Split(' ', StringSplitOptions.RemoveEmptyEntries)[1..];
             var pairs = split.Chunk(2).ToList();
             var seeds = pairs.Select(p => new Tuple<long, long>(long.Parse(p.First()), long.Parse(p.Last()))).ToList();
-            return seeds;
+            return seeds.OrderBy(s => s.Item1).ToList();
         }
 
         private ImmutableList<Map> GetMaps(List<string> input)
@@ -79,22 +81,56 @@ namespace AdventOfCode8.Aoc2023
             return locations.Min(l => l.Location);
         }
 
-        private static long GetLowest2(List<Tuple<long, long>> seeds, ImmutableList<Map> maps)
+        private static long GetLowest2(List<Tuple<long, long>> seeds, ImmutableList<Map> maps, List<Map> maps2)
         {
-            var lowest = long.MaxValue;
+            var minLocation = long.MaxValue;
             foreach (var seed in seeds)
             {
-                var lastSeed = seed.Item1 + seed.Item2;
-                for (var i = seed.Item1; i <= lastSeed ; i++)
+                var source = seed.Item1;
+                var length = seed.Item2;
+                while (true)
                 {
-                    var location = GetLocation(i, maps);
-                    if (location < lowest)
-                        lowest = location;
-                    if (i % 100000 == 0)
-                        Console.WriteLine($"i: {i} ({lastSeed})");
+                    var location = GetLocation(0, source, length, maps, maps2);
+                    minLocation = Math.Min(minLocation, location.Location + location.Diff ?? location.Source);
+                    length = Math.Min(length, location.Length);
+                    source += length;
+                    if (source > seed.Item2)
+                        break;
                 }
             }
-            return lowest;
+            return minLocation;
+        }
+
+        private static Map GetLocation(int index, long source, long length, ImmutableList<Map> maps, List<Map> maps2)
+        {
+            var map2 = maps2.FirstOrDefault(m => m.Index == index && source >= m.Source && source <= m.SourceEnd);
+            if (map2 != null)
+                return map2;
+
+            if (index == 6)
+            {
+                var map = maps2.FirstOrDefault(m => m.Index == index && source >= m.Source && source <= m.SourceEnd);
+                if (map == null)
+                {
+                    var before = maps2.Where(m => m.Index == index && source > m.SourceEnd).MaxBy(m => m.Source);
+                    var after = maps2.Where(m => m.Index == index && source < m.Source).MinBy(m => m.Source);
+                    var start = before?.Source ?? 0;
+                    var end = after?.Source ?? source;
+                    map = new Map { Index = index, Source = start, Destination = end, Length = end - start + 1, Location = start};
+                    maps2.Add(map);
+                }
+                return map;
+            }
+
+            var indexMaps = maps.Where(m => m.Index == index).ToList();
+            var map1 = indexMaps.FirstOrDefault(m => source >= m.Source && source <= m.SourceEnd);
+            source += map1?.Diff ?? 0;
+
+            var location = GetLocation(index + 1, source, length, maps, maps2);
+            map2 = new Map { Index = index, Source = source, Destination = location.Destination, Length = location.Length, Location = location.Location };
+            maps2.Add(map2);
+            return map2;
+
         }
 
         private static long GetLocation(long seed, ImmutableList<Map> maps)
@@ -108,6 +144,13 @@ namespace AdventOfCode8.Aoc2023
 
             return value;
         }
+
+        private List<Map> InitMaps2(ImmutableList<Map> maps)
+        {
+            var locations = maps.Where(m => m.Index == 6).OrderBy(m => m.Source).ToList();
+            locations.ForEach(l => l.Location = l.Destination);
+            return locations;
+        }
     }
 
     public class Map
@@ -115,9 +158,10 @@ namespace AdventOfCode8.Aoc2023
         public int Index{ get; set; }
 
         public long Source { get; set; }
+        public long SourceEnd => Source + Length - 1;
         public long Destination { get; set; }
         public long Length { get; set; }
         public long Diff => Destination - Source;
-
+        public long? Location { get; set; }
     }
 }
