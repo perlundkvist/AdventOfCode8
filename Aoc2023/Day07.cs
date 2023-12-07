@@ -10,7 +10,7 @@ namespace AdventOfCode8.Aoc2023
     internal class Day07 : DayBase
     {
 
-        private static char[] CardRanks = new [] {'A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3',  '2' };
+        private static List<char> CardRanks = new List<char> {'A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3',  '2' };
 
         internal void Run()
         {
@@ -88,8 +88,10 @@ namespace AdventOfCode8.Aoc2023
                     return Type.CompareTo(other.Type);
                 for (int i = 0; i < Cards.Count(); i++)
                 {
-                    if (Cards[i].CompareTo(other.Cards[i]) != 0)
-                        return Cards[i].CompareTo(other.Cards[i]);
+                    var card = CardRanks.IndexOf(Cards[i]);
+                    var otherCard = CardRanks.IndexOf(other.Cards[i]);
+                    if (card.CompareTo(otherCard) != 0)
+                        return card.CompareTo(otherCard);
                 }
                 return 0;
             }
