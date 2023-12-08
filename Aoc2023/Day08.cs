@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,9 +18,10 @@ namespace AdventOfCode8.Aoc2023
 
             var instructions = input[0];
 
-            var nodes = input[2..].Select(l => GetNode(l)).ToList();
+            var nodes = input[2..].Select(GetNode).ToList();
+            var nodes2 = nodes.ToImmutableDictionary(n => n.Id, n => n);  
 
-            var steps = GetSteps2(instructions, nodes);
+            var steps = GetSteps3(instructions, nodes2);
             Console.WriteLine($"Steps: {steps}");
 
             Console.WriteLine($"{DateTime.Now - start}");
@@ -56,6 +58,31 @@ namespace AdventOfCode8.Aoc2023
                     newStarts.Add(nodes.First(n => n.Id == (direction == 'L' ? node.Left : node.Right)));
                 }
                 if (steps % 100000 == 0)
+                    Console.WriteLine($"{steps}");
+                if (newStarts.All(node => node.Id.EndsWith("Z")))
+                    break;
+                starts = newStarts;
+                steps++;
+            }
+            return steps + 1;
+        }
+
+        private long GetSteps3(string instructions, ImmutableDictionary<string, Node> nodes)
+        {
+            var start = DateTime.Now;
+            long steps = 0;
+            var starts = nodes.Where(n => n.Key.EndsWith("A")).Select(n => n.Value);
+            while (true)
+            {
+                var idx = (int)steps % instructions.Length;
+                var direction = instructions[idx];
+                var newStarts = new List<Node>();
+                foreach (var node in starts)
+                {
+                    var key = direction == 'L' ? node.Left : node.Right;
+                    newStarts.Add(nodes[key]);
+                }
+                if (steps % 10000000 == 0)
                     Console.WriteLine($"{steps}");
                 if (newStarts.All(node => node.Id.EndsWith("Z")))
                     break;
