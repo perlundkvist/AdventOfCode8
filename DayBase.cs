@@ -38,6 +38,14 @@ namespace AdventOfCode8
             }
             return sOutput.ToString();
         }
+
+        public record LongPoint(long X, long Y)
+        {
+            public long ManhattanDistance(LongPoint p2)
+            {
+                return Math.Abs(X - p2.X) + Math.Abs(Y - p2.Y);
+            }
+        }
     }
 
     public static class Extensions
