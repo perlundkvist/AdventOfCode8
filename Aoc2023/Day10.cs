@@ -17,11 +17,11 @@ namespace AdventOfCode8.Aoc2023
         {
             var start = DateTime.Now;
 
-            var input = GetInput("2023_10").ToImmutableList();
+            var input = GetInput("2023_10s3").ToImmutableList();
             var pipes = GetPipes(input);
 
-            Print(pipes, input.Count, input[0].Count());
-            return;
+            //Print(pipes, input.Count, input[0].Count());
+            //return;
             //Console.WriteLine();
             //Print(pipes);
 
@@ -31,7 +31,6 @@ namespace AdventOfCode8.Aoc2023
             var enclosed = GetEnclosed(pipes, input);
             Console.WriteLine($"Enclosed: {enclosed}");
 
-
             Console.WriteLine($"{DateTime.Now - start}");
 
         }
@@ -39,63 +38,141 @@ namespace AdventOfCode8.Aoc2023
         private int GetEnclosed(List<Pipe> pipes, ImmutableList<string> map)
         {
             var free = new List<Pipe>();
-            var enclosed = new List<Pipe>();
-            var pipe = pipes.First(p => p.Shape == 'S');
-            var (Above, Below, Left, Right) = GetSurrounding(pipe, pipes);
-
-            if (Above?.Shape is '|' or '7'  or 'F' && Below?.Shape is '|' or 'L' or 'J') 
-                pipe.Shape = '|';
-            else if (Left?.Shape is '-' or 'L' or 'F' && Right?.Shape is '-' or '7' or 'J')
-                pipe.Shape = '-';
-            else if (Above?.Shape is '|' or '7' or 'F' && Right?.Shape is '-' or '7' or 'J')
-                pipe.Shape = 'L';
-            else if (Above?.Shape is '|' or '7' or 'F' && Left?.Shape is '-' or 'L' or 'F')
-                pipe.Shape = 'J';
-            else if (Below?.Shape is '|' or 'L' or 'J' && Left?.Shape is '-' or 'L' or 'F')
-                pipe.Shape = '7';
-            else if (Below?.Shape is '|' or 'L' or 'J' && Right?.Shape is '-' or '7' or 'J')
-                pipe.Shape = 'F';
-
-            Console.WriteLine($"S -> {pipe.Shape}");
+            var allPipes = new List<Pipe>(pipes);
 
             for (int l = 0; l < map.Count; l++)
             {
                 for (int c = 0; c < map[l].Length; c++)
                 {
-                    pipe = new Pipe(c, l, 'O');
-                    if (pipes.Contains(pipe))
+                    var pipe = new Pipe(c, l, '.');
+                    if (allPipes.Contains(pipe))
                         continue;
-                    (Above, Below, Left, Right) = GetSurrounding(pipe, free);
+                    if (c == 0 || c == map[l].Length -1 || l == 0 || l == map.Count - 1)
+                    {
+                        SetPipeAsFree(pipe);
+                        free.Add(pipe);
+                        allPipes.Add(pipe);
+                        continue;
+                    }
+                    var (Above, Below, Left, Right) = GetSurrounding(pipe, free);
                     var neighbour = Above ?? Below ?? Left ?? Right;
                     if (neighbour != null)
                     {
+                        SetPipeAsFree(pipe);
                         free.Add(pipe);
-                        continue;
-                    }
-                    (Above, Below, Left, Right) = GetSurrounding(pipe, enclosed);
-                    neighbour = Above ?? Below ?? Left ?? Right;
-                    if (neighbour != null)
-                    {
-                        enclosed.Add(pipe);
+                        allPipes.Add(pipe);
                         continue;
                     }
                     (Above, Below, Left, Right) = GetSurrounding(pipe, pipes);
                     neighbour = Above ?? Below ?? Left ?? Right;
                     if (neighbour == null)
                     {
+                        SetPipeAsFree(pipe);
                         free.Add(pipe);
+                        allPipes.Add(pipe);
                         continue;
                     }
-                    var allTiles = free.ToList();
-                    allTiles.AddRange(enclosed);
-                    allTiles.AddRange(pipes);
-
-                    //Print(allTiles, l + 1);
-                    EnclosedOrFree(pipe, free, enclosed, pipes, []);
+                    allPipes.Add(pipe);
                 }
             }
+            //Print(allPipes);
+            while (true)
+            {
+                var toFix = allPipes.Where(p => p.Shape == '.').ToList();
+                Console.WriteLine($"Left to fix: {toFix.Count}");
+                if (!toFix.Any())
+                    break;
+                foreach (var pipe in toFix)
+                {
+                    var (Above, Below, Left, Right) = GetSurrounding(pipe, allPipes);
+                    if (Above?.Shape is 'O' || Below?.Shape is 'O' || Left?.Shape is 'O' || Right?.Shape is 'O')
+                    {
+                        SetPipeAsFree(pipe);
+                        continue;
+                    }
+                    if (Above?.Shape is 'I' || Below?.Shape is 'I' || Left?.Shape is 'I' || Right?.Shape is 'I')
+                    {
+                        pipe.Shape = 'I';
+                        continue;
+                    }
+                    Print(allPipes, current: pipe);
+                    bool onEdge = false;
 
-            return enclosed.Count;
+                    switch (pipe.Shape)
+                    {
+                        case '-':
+                            onEdge = !pipes.Any(p => p.Line == pipe.Line && p.Col < pipe.Col); // None above 
+                            if (onEdge)
+                            {
+                                pipe.Outsides.Add(Direction.Up);
+                                break;
+                            }
+                            onEdge = !pipes.Any(p => p.Line == pipe.Line && p.Col > pipe.Col); // None below 
+                            if (onEdge)
+                            {
+                                pipe.Outsides.Add(Direction.Down);
+                                break;
+                            }
+                            if (Left != null && Left.Outsides.Contains(Direction.Up))
+                                pipe.Outsides.Add(Direction.Up);
+                            else if (Left != null && Left.Outsides.Contains(Direction.Down))
+                                pipe.Outsides.Add(Direction.Down);
+                            else if (Right != null && Right.Outsides.Contains(Direction.Up))
+                                pipe.Outsides.Add(Direction.Up);
+                            else if (Right != null && Right.Outsides.Contains(Direction.Down))
+                                pipe.Outsides.Add(Direction.Down);
+                            break;
+                        case '|':
+                            onEdge = !pipes.Any(p => p.Line < pipe.Line && p.Col == pipe.Col); // None left
+                            if (onEdge)
+                            {
+                                pipe.Outsides.Add(Direction.Left);
+                                break;
+                            }
+                            onEdge = !pipes.Any(p => p.Line > pipe.Line && p.Col == pipe.Col); // None right
+                            if (onEdge)
+                            {
+                                pipe.Outsides.Add(Direction.Right);
+                                break;
+                            }
+                            if (Above != null && Above.Outsides.Contains(Direction.Up))
+                                pipe.Outsides.Add(Direction.Up);
+                            else if (Below != null && Below.Outsides.Contains(Direction.Up))
+                                pipe.Outsides.Add(Direction.Up);
+                            break;
+                        case 'F':
+                            onEdge = !pipes.Any(p => p.Line == pipe.Line && p.Col < pipe.Col); // None above 
+                            if (onEdge)
+                            {
+                                pipe.Outsides.Add(Direction.Up);
+                                break;
+                            }
+                            onEdge = !pipes.Any(p => p.Line < pipe.Line && p.Col == pipe.Col); // None left
+                            if (onEdge)
+                            {
+                                pipe.Outsides.Add(Direction.Left);
+                                break;
+                            }
+                            if (Above != null && Above.Outsides.Contains(Direction.Up))
+                                pipe.Outsides.Add(Direction.Up);
+                            else if (Below != null && Below.Outsides.Contains(Direction.Up))
+                                pipe.Outsides.Add(Direction.Up);
+                            break;
+                        default:
+                            throw new NotImplementedException(pipe.Shape.ToString());
+                    }
+                }
+            }
+            return allPipes.Count(p => p.Shape == 'I');
+        }
+
+        private void SetPipeAsFree(Pipe pipe)
+        {
+            pipe.Shape = 'O';
+            pipe.Outsides.Add(Direction.Left);
+            pipe.Outsides.Add(Direction.Right);
+            pipe.Outsides.Add(Direction.Up);
+            pipe.Outsides.Add(Direction.Down);
         }
 
         private void EnclosedOrFree(Pipe pipe, List<Pipe> free, List<Pipe> enclosed, List<Pipe> pipes, List<Pipe> tested)
@@ -298,10 +375,31 @@ namespace AdventOfCode8.Aoc2023
                 pipe = next;
                 pipes.Add(pipe);
             }
+            var sPipe = pipes.First(p => p.Shape == 'S');
+            var (Above, Below, Left, Right) = GetSurrounding(sPipe, pipes);
+            FixS(sPipe, Above, Below, Left, Right);
             return pipes;
         }
 
-        private void Print(List<Pipe> pipes, int lines = 0, int cols = 0, Pipe? current = null)
+        private void FixS(Pipe pipe, Pipe? above, Pipe? below, Pipe? left, Pipe? right)
+        {
+            if (above?.Shape is '|' or '7' or 'F' && below?.Shape is '|' or 'L' or 'J')
+                pipe.Shape = '|';
+            else if (left?.Shape is '-' or 'L' or 'F' && right?.Shape is '-' or '7' or 'J')
+                pipe.Shape = '-';
+            else if (above?.Shape is '|' or '7' or 'F' && right?.Shape is '-' or '7' or 'J')
+                pipe.Shape = 'L';
+            else if (above?.Shape is '|' or '7' or 'F' && left?.Shape is '-' or 'L' or 'F')
+                pipe.Shape = 'J';
+            else if (below?.Shape is '|' or 'L' or 'J' && left?.Shape is '-' or 'L' or 'F')
+                pipe.Shape = '7';
+            else if (below?.Shape is '|' or 'L' or 'J' && right?.Shape is '-' or '7' or 'J')
+                pipe.Shape = 'F';
+
+            Console.WriteLine($"S -> {pipe.Shape}");
+        }
+
+        private void Print(List<Pipe> pipes, int lines = 0, int cols = 0, Pipe? current = null, bool pretty = false)
         {
             if (lines == 0)
                 lines = pipes.Max(p => p.Line) + 1;
@@ -317,8 +415,9 @@ namespace AdventOfCode8.Aoc2023
                         !pipes.Any(p => p.Line < l && p.Col == c) ||
                         !pipes.Any(p => p.Line > l && p.Col == c))
                         empty = ' ';
-                    Console.Write(current != null && current.Col == c && current.Line == l ? 'X' :
-                        pipes.FirstOrDefault(p => p.Col == c && p.Line == l)?.Shape ?? empty);
+                    var symbol = current != null && current.Col == c && current.Line == l ? 'X' :
+                        pipes.FirstOrDefault(p => p.Col == c && p.Line == l)?.Shape ?? empty;
+                    Console.Write(symbol);
                 }
                 Console.WriteLine();
             }
@@ -326,11 +425,28 @@ namespace AdventOfCode8.Aoc2023
 
         }
 
+        private string GetPretty(char symbol, bool pretty)
+        {
+            if (!pretty)
+                return symbol.ToString();
+            return symbol switch
+            {
+                'F' => "┏",
+                'J' => "┛",
+                'L' => "┗",
+                '7' => "┓",
+                '|' => "┃",
+                '_' => "━",
+                _ => symbol.ToString(),
+            };
+        }
+
         private class Pipe(int col, int line, char shape) : IEquatable<Pipe>
         {
             public int Col { get; } = col;
             public int Line { get; } = line;
             public char Shape { get; set; } = shape;
+            public List<Direction> Outsides { get; } = [];
 
             public Pipe GetNext(Pipe previous, ImmutableList<string> map)
             {
@@ -400,6 +516,23 @@ namespace AdventOfCode8.Aoc2023
                         break;
                 }
                 var pipe = new Pipe(col, line, map[line][col]);
+                switch (pipe.Shape)
+                {
+                    case 'F':
+                        break;
+                    case '7':
+                        pipe.Outsides.Add(Direction.Up);
+                        pipe.Outsides.Add(Direction.Right);
+                        break;
+                    case 'L':
+                        pipe.Outsides.Add(Direction.Down);
+                        pipe.Outsides.Add(Direction.Left);
+                        break;
+                    case 'J':
+                        pipe.Outsides.Add(Direction.Down);
+                        pipe.Outsides.Add(Direction.Right);
+                        break;
+                }
                 return pipe;
             }
             public bool Equals(Pipe? other)
