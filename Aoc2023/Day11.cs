@@ -33,24 +33,15 @@ namespace AdventOfCode8.Aoc2023
         private object GetSum(List<LongPoint> galaxies)
         {
             long sum = 0;
-            for (int i = 0; i < galaxies.Count; i++)
+            for (var i = 0; i < galaxies.Count; i++)
             {
                 var galaxy = galaxies[i];
-                for (int j = i +1; j < galaxies.Count; j++)
+                for (var j = i + 1; j < galaxies.Count; j++)
                 {
                     var dest = galaxies[j];
                     sum += galaxy.ManhattanDistance(dest);
                 }
             }
-
-            //foreach (var galaxy in galaxies)
-            //{
-            //    var idx = galaxies
-            //    foreach (var dest in galaxies.Where(g => g))
-            //    {
-            //        sum += galaxy.ManhattanDistance(dest) * 2 + 1;
-            //    }
-            //}
             return sum;
         }
 
