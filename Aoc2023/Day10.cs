@@ -306,7 +306,7 @@ namespace AdventOfCode8.Aoc2023
                 for (int c = 0; c < cols; c++)
                 {
                     var symbol = pipes.FirstOrDefault(p => p.Col == c && p.Line == l)?.Shape ?? ' ';
-                    writer.Write(GetPretty(symbol, true));
+                    writer.Write(GetPretty(symbol));
                 }
                 writer.WriteLine();
             }
@@ -328,7 +328,7 @@ namespace AdventOfCode8.Aoc2023
                 for (int c = 0; c < cols; c++)
                 {
                     var pipe = pipes.FirstOrDefault(p => p.Col == c && p.Line == l);
-                    var symbol = GetPretty(pipe?.Shape ?? ' ', true);
+                    var symbol = GetPretty(pipe?.Shape ?? ' ');
                     line += " ";
                     line += (pipe != null && !pipe.Outsides.Any(o => o == Direction.Up)) ? "░" : " ";
                     line += " ";
@@ -357,10 +357,8 @@ namespace AdventOfCode8.Aoc2023
             };
         }
 
-        private string GetPretty(char symbol, bool pretty)
+        private string GetPretty(char symbol)
         {
-            if (!pretty)
-                return symbol.ToString();
             return symbol switch
             {
                 'F' => "┏",
@@ -405,6 +403,15 @@ namespace AdventOfCode8.Aoc2023
             public (Pipe? Above, Pipe? Below, Pipe? Left, Pipe? Right) GetSurrounding()
             {
                 return (above, below, left, right);
+            }
+
+            public (string line1, string line2, string line3) GetSymbol()
+            {
+                var line1 = "";
+                var line2 = "";
+                var line3 = "";
+
+                return (line1, line2, line3);
             }
 
             public void SetSurrounding(List<Pipe> pipes)
