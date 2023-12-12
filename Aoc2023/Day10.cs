@@ -39,7 +39,7 @@ namespace AdventOfCode8.Aoc2023
         {
             SetOutsides(pipes);
 
-            PrintToFile(pipes, "map4");
+            PrintToFile2(pipes, "map4");
 
             var free = new List<Pipe>();
             var allPipes = new List<Pipe>(pipes);
@@ -309,6 +309,39 @@ namespace AdventOfCode8.Aoc2023
                     writer.Write(GetPretty(symbol, true));
                 }
                 writer.WriteLine();
+            }
+            writer.Flush();
+            writer.Close();
+            Console.WriteLine($"{name} created");
+        }
+
+        private void PrintToFile2(List<Pipe> pipes, string name)
+        {
+            var writer = File.CreateText($"..\\..\\..\\input\\{name}.txt");
+            var lines = pipes.Max(p => p.Line) + 1;
+            var cols = pipes.Max(p => p.Col) + 1;
+            for (int l = 0; l < lines; l++)
+            {
+                var line = "";
+                var line2 = "";
+                var line3 = "";
+                for (int c = 0; c < cols; c++)
+                {
+                    var pipe = pipes.FirstOrDefault(p => p.Col == c && p.Line == l);
+                    var symbol = GetPretty(pipe?.Shape ?? ' ', true);
+                    line += " ";
+                    line += (pipe != null && !pipe.Outsides.Any(o => o == Direction.Up)) ? "░" : " ";
+                    line += " ";
+                    line2 += (pipe != null && pipe.Outsides.Any(o => o == Direction.Right)) ? "░" : " ";
+                    line2 += symbol;
+                    line2 += (pipe != null && pipe.Outsides.Any(o => o == Direction.Left)) ? "░" : " ";
+                    line3 += " ";
+                    line3 += (pipe != null && !pipe.Outsides.Any(o => o == Direction.Down)) ? "░" : " ";
+                    line3 += " ";
+                }
+                writer.WriteLine(line);
+                writer.WriteLine(line2);
+                writer.WriteLine(line3);
             }
             writer.Flush();
             writer.Close();
