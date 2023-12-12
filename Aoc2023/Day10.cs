@@ -29,7 +29,7 @@ namespace AdventOfCode8.Aoc2023
             Console.WriteLine($"Distance: {distance}");
 
             var enclosed = GetEnclosed(pipes, input);
-            Console.WriteLine($"Enclosed: {enclosed}");
+            Console.WriteLine($"Enclosed: {enclosed}. 246 too low"); 
 
             Console.WriteLine($"{DateTime.Now - start}");
 
@@ -38,6 +38,8 @@ namespace AdventOfCode8.Aoc2023
         private int GetEnclosed(List<Pipe> pipes, ImmutableList<string> map)
         {
             SetOutsides(pipes);
+
+            PrintToFile(pipes, "map4");
 
             var free = new List<Pipe>();
             var allPipes = new List<Pipe>(pipes);
@@ -49,34 +51,30 @@ namespace AdventOfCode8.Aoc2023
                     var pipe = new Pipe(c, l, '.');
                     if (allPipes.Contains(pipe))
                         continue;
-                    if (c == 0 || c == map[l].Length -1 || l == 0 || l == map.Count - 1)
+                    var onEdge = !pipes.Any(p => p.Line == pipe.Line && p.Col < pipe.Col);  // None left 
+                    onEdge |= !pipes.Any(p => p.Line == pipe.Line && p.Col > pipe.Col);  // None right
+                    onEdge |= !pipes.Any(p => p.Line < pipe.Line && p.Col == pipe.Col); // None above
+                    onEdge |= !pipes.Any(p => p.Line > pipe.Line + 1 && p.Col == pipe.Col); // None below
+                    if (onEdge)
                     {
                         SetPipeAsFree(pipe);
                         free.Add(pipe);
-                        allPipes.Add(pipe);
-                        continue;
                     }
-                    var (Above, Below, Left, Right) = GetSurrounding(pipe, free);
-                    var neighbour = Above ?? Below ?? Left ?? Right;
-                    if (neighbour != null)
-                    {
-                        SetPipeAsFree(pipe);
-                        free.Add(pipe);
-                        allPipes.Add(pipe);
-                        continue;
-                    }
+                    allPipes.Add(pipe);
                 }
             }
-            Print(allPipes);
+            //Print(allPipes);
+            PrintToFile(allPipes, "map2");
+            allPipes.Where(p => p.Shape == '.').ToList().ForEach(p => p.SetSurrounding(allPipes));
             while (true)
             {
                 var toFix = allPipes.Where(p => p.Shape == '.').ToList();
                 Console.WriteLine($"Left to fix: {toFix.Count}");
                 if (!toFix.Any())
                     break;
-                foreach (var pipe in toFix)
+                foreach (var pipe in toFix.Where(p => p.Line == 12))
                 {
-                    var (Above, Below, Left, Right) = GetSurrounding(pipe, allPipes);
+                    var (Above, Below, Left, Right) = pipe.GetSurrounding();
                     if (Above?.Shape is 'O' || Below?.Shape is 'O' || Left?.Shape is 'O' || Right?.Shape is 'O')
                     {
                         SetPipeAsFree(pipe);
@@ -87,74 +85,42 @@ namespace AdventOfCode8.Aoc2023
                         pipe.Shape = 'I';
                         continue;
                     }
-                    Print(allPipes, current: pipe);
-                    bool onEdge = false;
-
-                    switch (pipe.Shape)
+                    if (Above != null && IsPipe(Above))
                     {
-                        case '-':
-                            onEdge = !pipes.Any(p => p.Line == pipe.Line && p.Col < pipe.Col); // None above 
-                            if (onEdge)
-                            {
-                                pipe.Outsides.Add(Direction.Up);
-                                break;
-                            }
-                            onEdge = !pipes.Any(p => p.Line == pipe.Line && p.Col > pipe.Col); // None below 
-                            if (onEdge)
-                            {
-                                pipe.Outsides.Add(Direction.Down);
-                                break;
-                            }
-                            if (Left != null && Left.Outsides.Contains(Direction.Up))
-                                pipe.Outsides.Add(Direction.Up);
-                            else if (Left != null && Left.Outsides.Contains(Direction.Down))
-                                pipe.Outsides.Add(Direction.Down);
-                            else if (Right != null && Right.Outsides.Contains(Direction.Up))
-                                pipe.Outsides.Add(Direction.Up);
-                            else if (Right != null && Right.Outsides.Contains(Direction.Down))
-                                pipe.Outsides.Add(Direction.Down);
-                            break;
-                        case '|':
-                            onEdge = !pipes.Any(p => p.Line < pipe.Line && p.Col == pipe.Col); // None left
-                            if (onEdge)
-                            {
-                                pipe.Outsides.Add(Direction.Left);
-                                break;
-                            }
-                            onEdge = !pipes.Any(p => p.Line > pipe.Line && p.Col == pipe.Col); // None right
-                            if (onEdge)
-                            {
-                                pipe.Outsides.Add(Direction.Right);
-                                break;
-                            }
-                            if (Above != null && Above.Outsides.Contains(Direction.Up))
-                                pipe.Outsides.Add(Direction.Up);
-                            else if (Below != null && Below.Outsides.Contains(Direction.Up))
-                                pipe.Outsides.Add(Direction.Up);
-                            break;
-                        case 'F':
-                            onEdge = !pipes.Any(p => p.Line == pipe.Line && p.Col < pipe.Col); // None above 
-                            if (onEdge)
-                            {
-                                pipe.Outsides.Add(Direction.Up);
-                                break;
-                            }
-                            onEdge = !pipes.Any(p => p.Line < pipe.Line && p.Col == pipe.Col); // None left
-                            if (onEdge)
-                            {
-                                pipe.Outsides.Add(Direction.Left);
-                                break;
-                            }
-                            if (Above != null && Above.Outsides.Contains(Direction.Up))
-                                pipe.Outsides.Add(Direction.Up);
-                            else if (Below != null && Below.Outsides.Contains(Direction.Up))
-                                pipe.Outsides.Add(Direction.Up);
-                            break;
-                        default:
-                            throw new NotImplementedException(pipe.Shape.ToString());
+                        if (Above.Outsides.Any(o => o == Direction.Down))
+                            SetPipeAsFree(pipe); 
+                        else
+                            pipe.Shape = 'I';
+                        continue;
                     }
+                    if (Below != null && IsPipe(Below))
+                    {
+                        if (Below.Outsides.Any(o => o == Direction.Up))
+                            SetPipeAsFree(pipe);
+                        else
+                            pipe.Shape = 'I';
+                        continue;
+                    }
+                    if (Left != null && IsPipe(Left))
+                    {
+                        if (Left.Outsides.Any(o => o == Direction.Right))
+                            SetPipeAsFree(pipe);
+                        else
+                            pipe.Shape = 'I';
+                        continue;
+                    }
+                    if (Right != null && IsPipe(Right))
+                    {
+                        if (Right.Outsides.Any(o => o == Direction.Left))
+                            SetPipeAsFree(pipe);
+                        else
+                            pipe.Shape = 'I';
+                        continue;
+                    }
+                    Print(allPipes, current: pipe);
                 }
             }
+            PrintToFile(allPipes, "map3");
             return allPipes.Count(p => p.Shape == 'I');
         }
 
@@ -164,20 +130,85 @@ namespace AdventOfCode8.Aoc2023
             start.Outsides.Add(Direction.Up);
             start.Outsides.Add(Direction.Left);
             var pipe = start;
-            var previous = start;
-            var idx = 0;
+            var previous = pipe;
             while (true)
             {
-                var (n1, n2) = pipe.GetNeighbours(pipes);
+                var (n1, n2) = pipe.GetNeighbours();
                 var next = n1 == previous ? n2 : n1;
-                if (next == start)
-                    break;
-
                 previous = pipe;
                 pipe = next;
-                idx++;
+                if (pipe == start)
+                    break;
+
+                var (above, below, left, right) = pipe.GetSurrounding();
+                switch (pipe.Shape)
+                {
+                    case '|':
+                        pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Left) ? Direction.Left : Direction.Right);
+                        break;
+                    case '-':
+                        pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Up) ? Direction.Up : Direction.Down);
+                        break;
+                    case 'L':
+                        if (previous == above)
+                        {
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Left) ? Direction.Left : Direction.Right);
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Left) ? Direction.Down : Direction.Up);
+                        }
+                        else if (previous == right)
+                        {
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Up) ? Direction.Left : Direction.Right);
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Up) ? Direction.Up : Direction.Down);
+                        }
+                        else 
+                            throw new NotImplementedException();
+                        break;
+                    case 'J':
+                        if (previous == above)
+                        {
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Left) ? Direction.Left : Direction.Right);
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Left) ? Direction.Up : Direction.Down);
+                        }
+                        else if (previous == left)
+                        {
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Up) ? Direction.Left : Direction.Right);
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Up) ? Direction.Up : Direction.Down);
+                        }
+                        else
+                            throw new NotImplementedException();
+                        break;
+                    case '7':
+                        if (previous == below)
+                        {
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Left) ? Direction.Left : Direction.Right);
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Left) ? Direction.Down : Direction.Up);
+                        }
+                        else if (previous == left)
+                        {
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Up) ? Direction.Right : Direction.Left);
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Up) ? Direction.Up : Direction.Down);
+                        }
+                        else
+                            throw new NotImplementedException();
+                        break;
+                    case 'F':
+                        if (previous == below)
+                        {
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Left) ? Direction.Left : Direction.Right);
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Left) ? Direction.Up : Direction.Down);
+                        }
+                        else if (previous == right)
+                        {
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Up) ? Direction.Left : Direction.Right);
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Up) ? Direction.Up : Direction.Down);
+                        }
+                        else
+                            throw new NotImplementedException();
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
             }
-            Console.WriteLine($"Start: {start.Col},{start.Line}");
         }
 
         private void SetPipeAsFree(Pipe pipe)
@@ -187,181 +218,6 @@ namespace AdventOfCode8.Aoc2023
             pipe.Outsides.Add(Direction.Right);
             pipe.Outsides.Add(Direction.Up);
             pipe.Outsides.Add(Direction.Down);
-        }
-
-        private void EnclosedOrFree(Pipe pipe, List<Pipe> free, List<Pipe> enclosed, List<Pipe> pipes, List<Pipe> tested)
-        {
-            var testedHere = tested.ToList();
-            Print(pipes, current: pipe);
-            var (Above, Below, Left, Right) = GetSurrounding(pipe, pipes);
-            var canEscape = false;
-            if (Above == null)
-            {
-                var next = new Pipe(pipe.Col, pipe.Line - 1, '.');
-                if (!testedHere.Contains(next))
-                {
-                    testedHere.Add(next);
-                    EnclosedOrFree(next, free, enclosed, pipes, testedHere);
-                    testedHere.Remove(next);
-                }
-            }
-            else
-            {
-                canEscape = CanEscape(Above, pipe, free, enclosed, pipes, Direction.Up);
-            }
-            if (!canEscape && Below == null)
-            {
-                var next = new Pipe(pipe.Col, pipe.Line + 1, '.');
-                if (!testedHere.Contains(next))
-                {
-                    testedHere.Add(pipe);
-                    EnclosedOrFree(next, free, enclosed, pipes, testedHere);
-                    testedHere.Remove(next);
-                }
-            }
-            else if (!canEscape && Below != null)
-            {
-                canEscape = CanEscape(Below, pipe, free, enclosed, pipes, Direction.Down);
-            }
-            if (!canEscape && Left == null)
-            {
-                var next = new Pipe(pipe.Col - 1, pipe.Line, '.');
-                if (!testedHere.Contains(next))
-                {
-                    testedHere.Add(pipe);
-                    EnclosedOrFree(next, free, enclosed, pipes, testedHere);
-                    testedHere.Remove(next);
-                }
-            }
-            else if (!canEscape && Left != null)
-            {
-                canEscape = CanEscape(Left, pipe, free, enclosed, pipes, Direction.Left);
-            }
-            if (Right == null)
-            {
-                var next = new Pipe(pipe.Col + 1, pipe.Line, '.');
-                if (!testedHere.Contains(next))
-                {
-                    testedHere.Add(pipe);
-                    EnclosedOrFree(next, free, enclosed, pipes, testedHere);
-                    testedHere.Remove(next);
-                }
-            }
-            else if (!canEscape && Right != null)
-            {
-                canEscape = CanEscape(Right, pipe, free, enclosed, pipes, Direction.Right);
-            }
-            pipe.Shape = canEscape ? 'O' : 'I';
-            if (pipe.Shape == 'I' && !enclosed.Contains(pipe))
-                enclosed.Add(pipe);
-            else if (pipe.Shape == 'O' && !free.Contains(pipe))
-                free.Add(pipe);
-        }
-
-        private bool CanEscape(Pipe neighbour, Pipe pipe, List<Pipe> free, List<Pipe> enclosed, List<Pipe> pipes, Direction direction)
-        {
-            double c;
-            double l;
-            switch (direction)
-            {
-                case Direction.Left:
-                    if (neighbour.Shape is '|')
-                        return false;
-                    if (neighbour.Shape is 'L' or 'F')
-                        throw new NotImplementedException($"{direction}");
-                    if (neighbour.Shape is 'F')
-                    {
-                        c = pipe.Col - 0.5;
-                        l = Convert.ToDouble(pipe.Line);
-                        return CanEscape(c, l, free, pipes, direction);
-                    }
-                    break;
-                case Direction.Right:
-                    if (neighbour.Shape is '|')
-                        return false;
-                    if (neighbour.Shape is 'J' or '7')
-                        throw new NotImplementedException($"{direction}");
-                    break;
-                case Direction.Down:
-                    if (neighbour.Shape is '-')
-                        return false;
-                    if (neighbour.Shape is 'J' or 'L')
-                        throw new NotImplementedException($"{direction}");
-                    c = neighbour.Shape is 'F' ? pipe.Col - 0.5 : pipe.Col + 0.5; 
-                    l = Convert.ToDouble(pipe.Line + 1);
-                    return CanEscape(c, l, free, pipes, direction);
-                case Direction.Up:
-                    if (neighbour.Shape is '-')
-                        return false;
-                    if (neighbour.Shape is '7' or 'F')
-                        throw new NotImplementedException($"{direction}");
-                    if (neighbour.Shape is 'L')
-                    {
-                        c = pipe.Col - 0.5;
-                        l = Convert.ToDouble(pipe.Line);
-                        return CanEscape(c, l, free, pipes, direction);
-                    }
-                    if (neighbour.Shape is 'J')
-                    {
-                        c = pipe.Col + 0.5;
-                        l = Convert.ToDouble(pipe.Line);
-                        return CanEscape(c, l, free, pipes, direction);
-                    }
-                    break;
-            }
-            return false;
-        }
-
-        private bool CanEscape(double col, double line, List<Pipe> free, List<Pipe> pipes, Direction direction)
-        {
-            switch (direction)
-            {
-                case Direction.Left:
-                    //if (neighbour.Shape is '|')
-                    //    return false;
-                    //if (neighbour.Shape is 'L' or 'F')
-                    //    throw new NotImplementedException($"{direction}");
-                    //if (neighbour.Shape is 'F')
-                    //{
-                    //    var c = Convert.ToDouble(pipe.Col);
-                    //    var l = Convert.ToDouble(pipe.Line) - 0.5;
-                    //    return CanEscape(new Point(c, l), free, pipes, direction);
-                    //}
-                    break;
-                case Direction.Right:
-                    //if (neighbour.Shape is '|')
-                    //    return false;
-                    //if (neighbour.Shape is 'J' or '7')
-                    //    throw new NotImplementedException($"{direction}");
-                    break;
-                case Direction.Down:
-                    var below1 = pipes.FirstOrDefault(p => p.Line == line + 1 && p.Col == Math.Floor(col));
-                    var below2 = pipes.FirstOrDefault(p => p.Line == line + 1 && p.Col == Math.Ceiling(col));
-                    
-                    var left = pipes.FirstOrDefault(p => p.Line == line && p.Col == Math.Floor(col));
-                    var right = pipes.FirstOrDefault(p => p.Line == line && p.Col == Math.Ceiling(col));
-                    break;
-                case Direction.Up:
-                    var above1 = pipes.FirstOrDefault(p => p.Line == line - 1 && p.Col == Math.Floor(col));
-                    var above2 = pipes.FirstOrDefault(p => p.Line == line - 1 && p.Col == Math.Ceiling(col));
-
-                    //if (neighbour.Shape is '-')
-                    //    return false;
-                    //if (neighbour.Shape is '7' or 'F')
-                    //    throw new NotImplementedException($"{direction}");
-                    break;
-            }
-            return false;
-        }
-
-        private static (Pipe? Above,  Pipe? Below, Pipe? Left, Pipe? Right) GetSurrounding(Pipe pipe, List<Pipe> pipes)
-        {
-            var above = pipes.FirstOrDefault(p => p.Line == pipe.Line - 1 && p.Col == pipe.Col);
-            var below = pipes.FirstOrDefault(p => p.Line == pipe.Line + 1 && p.Col == pipe.Col);
-            var left = pipes.FirstOrDefault(p => p.Line == pipe.Line && p.Col == pipe.Col - 1);
-            var right = pipes.FirstOrDefault(p => p.Line == pipe.Line && p.Col == pipe.Col + 1);
-
-            return (above, below, left, right);
         }
 
         private long GetDistance(List<Pipe> pipes)
@@ -389,8 +245,9 @@ namespace AdventOfCode8.Aoc2023
                 pipe = next;
                 pipes.Add(pipe);
             }
+            pipes.ForEach(p => p.SetSurrounding(pipes));
             var sPipe = pipes.First(p => p.Shape == 'S');
-            var (Above, Below, Left, Right) = GetSurrounding(sPipe, pipes);
+            var (Above, Below, Left, Right) = sPipe.GetSurrounding();
             FixS(sPipe, Above, Below, Left, Right);
             return pipes;
         }
@@ -413,7 +270,7 @@ namespace AdventOfCode8.Aoc2023
             Console.WriteLine($"S -> {pipe.Shape}");
         }
 
-        private void Print(List<Pipe> pipes, int lines = 0, int cols = 0, Pipe? current = null, bool pretty = false)
+        private void Print(List<Pipe> pipes, int lines = 0, int cols = 0, Pipe? current = null, bool pretty = true)
         {
             if (lines == 0)
                 lines = pipes.Max(p => p.Line) + 1;
@@ -424,7 +281,8 @@ namespace AdventOfCode8.Aoc2023
                 for (int c = 0; c < cols; c++)
                 {
                     var empty = '.';
-                    if (!pipes.Any(p => p.Line == l && p.Col < c) ||
+                    if (pretty && 
+                        !pipes.Any(p => p.Line == l && p.Col < c) ||
                         !pipes.Any(p => p.Line == l && p.Col > c) ||
                         !pipes.Any(p => p.Line < l && p.Col == c) ||
                         !pipes.Any(p => p.Line > l && p.Col == c))
@@ -436,7 +294,34 @@ namespace AdventOfCode8.Aoc2023
                 Console.WriteLine();
             }
             Console.WriteLine();
+        }
 
+        private void PrintToFile(List<Pipe> pipes, string name)
+        {
+            var writer = File.CreateText($"..\\..\\..\\input\\{name}.txt");
+            var lines = pipes.Max(p => p.Line) + 1;
+            var cols = pipes.Max(p => p.Col) + 1;
+            for (int l = 0; l < lines; l++)
+            {
+                for (int c = 0; c < cols; c++)
+                {
+                    var symbol = pipes.FirstOrDefault(p => p.Col == c && p.Line == l)?.Shape ?? ' ';
+                    writer.Write(GetPretty(symbol, true));
+                }
+                writer.WriteLine();
+            }
+            writer.Flush();
+            writer.Close();
+            Console.WriteLine($"{name} created");
+        }
+
+        private static bool IsPipe(Pipe pipe)
+        {
+            return pipe.Shape switch
+            {
+                'F' or 'J' or 'L' or '7' or '|' or '_' => true,
+                _ => false,
+            };
         }
 
         private string GetPretty(char symbol, bool pretty)
@@ -450,7 +335,7 @@ namespace AdventOfCode8.Aoc2023
                 'L' => "┗",
                 '7' => "┓",
                 '|' => "┃",
-                '_' => "━",
+                '-' => "━",
                 _ => symbol.ToString(),
             };
         }
@@ -462,9 +347,13 @@ namespace AdventOfCode8.Aoc2023
             public char Shape { get; set; } = shape;
             public List<Direction> Outsides { get; } = [];
 
-            public (Pipe n1, Pipe n2) GetNeighbours(List<Pipe> pipes)
+            private Pipe? above;
+            private Pipe? below;
+            private Pipe? left;
+            private Pipe? right;
+
+            public (Pipe n1, Pipe n2) GetNeighbours()
             {
-                var (above, below, left, right) = GetSurrounding(this, pipes);
                 var (n1, n2) = Shape switch
                 {
                     '|' => (above, below),
@@ -478,6 +367,20 @@ namespace AdventOfCode8.Aoc2023
                 ArgumentNullException.ThrowIfNull(n1);
                 ArgumentNullException.ThrowIfNull(n2);
                 return (n1, n2);
+            }
+
+            public (Pipe? Above, Pipe? Below, Pipe? Left, Pipe? Right) GetSurrounding()
+            {
+                return (above, below, left, right);
+            }
+
+            public void SetSurrounding(List<Pipe> pipes)
+            {
+                above = pipes.FirstOrDefault(p => p.Line == Line - 1 && p.Col == Col);
+                below = pipes.FirstOrDefault(p => p.Line == Line + 1 && p.Col == Col);
+                left = pipes.FirstOrDefault(p => p.Line == Line && p.Col == Col - 1);
+                right = pipes.FirstOrDefault(p => p.Line == Line && p.Col == Col + 1);
+                ArgumentNullException.ThrowIfNull(above ?? below ?? left ?? right);
             }
 
             public Pipe GetNext(Pipe previous, ImmutableList<string> map)
@@ -548,23 +451,6 @@ namespace AdventOfCode8.Aoc2023
                         break;
                 }
                 var pipe = new Pipe(col, line, map[line][col]);
-                switch (pipe.Shape)
-                {
-                    case 'F':
-                        break;
-                    case '7':
-                        pipe.Outsides.Add(Direction.Up);
-                        pipe.Outsides.Add(Direction.Right);
-                        break;
-                    case 'L':
-                        pipe.Outsides.Add(Direction.Down);
-                        pipe.Outsides.Add(Direction.Left);
-                        break;
-                    case 'J':
-                        pipe.Outsides.Add(Direction.Down);
-                        pipe.Outsides.Add(Direction.Right);
-                        break;
-                }
                 return pipe;
             }
             public bool Equals(Pipe? other)
