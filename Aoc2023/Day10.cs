@@ -17,7 +17,7 @@ namespace AdventOfCode8.Aoc2023
         {
             var start = DateTime.Now;
 
-            var input = GetInput("2023_10s3").ToImmutableList();
+            var input = GetInput("2023_10").ToImmutableList();
             var pipes = GetPipes(input);
 
             //Print(pipes, input.Count, input[0].Count());
@@ -37,6 +37,8 @@ namespace AdventOfCode8.Aoc2023
 
         private int GetEnclosed(List<Pipe> pipes, ImmutableList<string> map)
         {
+            SetOutsides(pipes);
+
             var free = new List<Pipe>();
             var allPipes = new List<Pipe>(pipes);
 
@@ -63,19 +65,9 @@ namespace AdventOfCode8.Aoc2023
                         allPipes.Add(pipe);
                         continue;
                     }
-                    (Above, Below, Left, Right) = GetSurrounding(pipe, pipes);
-                    neighbour = Above ?? Below ?? Left ?? Right;
-                    if (neighbour == null)
-                    {
-                        SetPipeAsFree(pipe);
-                        free.Add(pipe);
-                        allPipes.Add(pipe);
-                        continue;
-                    }
-                    allPipes.Add(pipe);
                 }
             }
-            //Print(allPipes);
+            Print(allPipes);
             while (true)
             {
                 var toFix = allPipes.Where(p => p.Shape == '.').ToList();
@@ -164,6 +156,28 @@ namespace AdventOfCode8.Aoc2023
                 }
             }
             return allPipes.Count(p => p.Shape == 'I');
+        }
+
+        private void SetOutsides(List<Pipe> pipes)
+        {
+            var start = pipes.OrderBy(p => p.Line).ThenBy(p => p.Col).First(p => p.Shape == 'F');
+            start.Outsides.Add(Direction.Up);
+            start.Outsides.Add(Direction.Left);
+            var pipe = start;
+            var previous = start;
+            var idx = 0;
+            while (true)
+            {
+                var (n1, n2) = pipe.GetNeighbours(pipes);
+                var next = n1 == previous ? n2 : n1;
+                if (next == start)
+                    break;
+
+                previous = pipe;
+                pipe = next;
+                idx++;
+            }
+            Console.WriteLine($"Start: {start.Col},{start.Line}");
         }
 
         private void SetPipeAsFree(Pipe pipe)
@@ -340,7 +354,7 @@ namespace AdventOfCode8.Aoc2023
             return false;
         }
 
-        private (Pipe? Above,  Pipe? Below, Pipe? Left, Pipe? Right) GetSurrounding(Pipe pipe, List<Pipe> pipes)
+        private static (Pipe? Above,  Pipe? Below, Pipe? Left, Pipe? Right) GetSurrounding(Pipe pipe, List<Pipe> pipes)
         {
             var above = pipes.FirstOrDefault(p => p.Line == pipe.Line - 1 && p.Col == pipe.Col);
             var below = pipes.FirstOrDefault(p => p.Line == pipe.Line + 1 && p.Col == pipe.Col);
@@ -447,6 +461,24 @@ namespace AdventOfCode8.Aoc2023
             public int Line { get; } = line;
             public char Shape { get; set; } = shape;
             public List<Direction> Outsides { get; } = [];
+
+            public (Pipe n1, Pipe n2) GetNeighbours(List<Pipe> pipes)
+            {
+                var (above, below, left, right) = GetSurrounding(this, pipes);
+                var (n1, n2) = Shape switch
+                {
+                    '|' => (above, below),
+                    '-' => (left, right),
+                    'F' => (below, right),
+                    'J' => (above, left),
+                    'L' => (above, right),
+                    '7' => (below, left),
+                    _ => throw new NotImplementedException(Shape.ToString())
+                };
+                ArgumentNullException.ThrowIfNull(n1);
+                ArgumentNullException.ThrowIfNull(n2);
+                return (n1, n2);
+            }
 
             public Pipe GetNext(Pipe previous, ImmutableList<string> map)
             {
