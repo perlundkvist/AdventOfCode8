@@ -64,7 +64,7 @@ namespace AdventOfCode8.Aoc2023
                 }
             }
             //Print(allPipes);
-            PrintToFile(allPipes, "map2");
+            //PrintToFile(allPipes, "map2");
             allPipes.Where(p => p.Shape == '.').ToList().ForEach(p => p.SetSurrounding(allPipes));
             while (true)
             {
@@ -72,7 +72,7 @@ namespace AdventOfCode8.Aoc2023
                 Console.WriteLine($"Left to fix: {toFix.Count}");
                 if (!toFix.Any())
                     break;
-                foreach (var pipe in toFix.Where(p => p.Line == 12))
+                foreach (var pipe in toFix)
                 {
                     var (Above, Below, Left, Right) = pipe.GetSurrounding();
                     if (Above?.Shape is 'O' || Below?.Shape is 'O' || Left?.Shape is 'O' || Right?.Shape is 'O')
@@ -87,41 +87,130 @@ namespace AdventOfCode8.Aoc2023
                     }
                     if (Above != null && IsPipe(Above))
                     {
-                        if (Above.Outsides.Any(o => o == Direction.Down))
-                            SetPipeAsFree(pipe); 
-                        else
-                            pipe.Shape = 'I';
-                        continue;
+                        if (CheckAbove(pipe, Above))
+                            continue;
                     }
                     if (Below != null && IsPipe(Below))
                     {
-                        if (Below.Outsides.Any(o => o == Direction.Up))
-                            SetPipeAsFree(pipe);
-                        else
-                            pipe.Shape = 'I';
-                        continue;
+                        if (CheckBelow(pipe, Below))
+                            continue;
                     }
                     if (Left != null && IsPipe(Left))
                     {
-                        if (Left.Outsides.Any(o => o == Direction.Right))
-                            SetPipeAsFree(pipe);
-                        else
-                            pipe.Shape = 'I';
+                        if (CheckLeft(pipe, Left))
+                            continue;
                         continue;
                     }
                     if (Right != null && IsPipe(Right))
                     {
-                        if (Right.Outsides.Any(o => o == Direction.Left))
-                            SetPipeAsFree(pipe);
-                        else
-                            pipe.Shape = 'I';
+                        if (CheckRight(pipe, Right))
+                            continue;
                         continue;
                     }
-                    Print(allPipes, current: pipe);
+                    //Print(allPipes, current: pipe);
                 }
             }
             PrintToFile(allPipes, "map3");
             return allPipes.Count(p => p.Shape == 'I');
+        }
+
+        private bool CheckAbove(Pipe pipe, Pipe above)
+        {
+            switch (above.Shape) 
+            {
+                case '|':
+                    throw new NotImplementedException();
+                case '-':
+                    if (above.Outsides.Any(o => o == Direction.Down))
+                        SetPipeAsFree(pipe);
+                    else
+                        pipe.Shape = 'I';
+                    return true;
+                case 'J':
+                case 'F':
+                    if (above.Outsides.Any(o => o == Direction.Right))
+                        SetPipeAsFree(pipe);
+                    else
+                        pipe.Shape = 'I';
+                    return true;
+                case 'L':
+                case '7':
+                    if (above.Outsides.Any(o => o == Direction.Left))
+                        SetPipeAsFree(pipe);
+                    else
+                        pipe.Shape = 'I';
+                    return true;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        private bool CheckBelow(Pipe pipe, Pipe below)
+        {
+            switch (below.Shape)
+            {
+                case '|':
+                    throw new NotImplementedException();
+                case '-':
+                    if (below.Outsides.Any(o => o == Direction.Up))
+                        SetPipeAsFree(pipe);
+                    else
+                        pipe.Shape = 'I';
+                    return true;
+                case 'L':
+                case '7':
+                    if (below.Outsides.Any(o => o == Direction.Right))
+                        SetPipeAsFree(pipe);
+                    else
+                        pipe.Shape = 'I';
+                    return true;
+                case 'J':
+                case 'F':
+                    if (below.Outsides.Any(o => o == Direction.Left))
+                        SetPipeAsFree(pipe);
+                    else
+                        pipe.Shape = 'I';
+                    return true;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+        private bool CheckLeft(Pipe pipe, Pipe left)
+        {
+            switch (left.Shape)
+            {
+                case '-':
+                    throw new NotImplementedException();
+                case '|':
+                case 'J':
+                case '7':
+                    if (left.Outsides.Any(o => o == Direction.Right))
+                        SetPipeAsFree(pipe);
+                    else
+                        pipe.Shape = 'I';
+                    return true;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        private bool CheckRight(Pipe pipe, Pipe right)
+        {
+            switch (right.Shape)
+            {
+                case '-':
+                    throw new NotImplementedException();
+                case '|':
+                case 'L':
+                case 'F':
+                    if (right.Outsides.Any(o => o == Direction.Left))
+                        SetPipeAsFree(pipe);
+                    else
+                        pipe.Shape = 'I';
+                    return true;
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
         private void SetOutsides(List<Pipe> pipes)
@@ -157,8 +246,8 @@ namespace AdventOfCode8.Aoc2023
                         }
                         else if (previous == right)
                         {
-                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Up) ? Direction.Left : Direction.Right);
-                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Up) ? Direction.Up : Direction.Down);
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Down) ? Direction.Left : Direction.Right);
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Down) ? Direction.Down : Direction.Up);
                         }
                         else 
                             throw new NotImplementedException();
@@ -185,8 +274,8 @@ namespace AdventOfCode8.Aoc2023
                         }
                         else if (previous == left)
                         {
-                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Up) ? Direction.Right : Direction.Left);
-                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Up) ? Direction.Up : Direction.Down);
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Down) ? Direction.Left : Direction.Right);
+                            pipe.Outsides.Add(previous.Outsides.Any(o => o == Direction.Down) ? Direction.Down : Direction.Up);
                         }
                         else
                             throw new NotImplementedException();
@@ -322,24 +411,27 @@ namespace AdventOfCode8.Aoc2023
             var cols = pipes.Max(p => p.Col) + 1;
             for (int l = 0; l < lines; l++)
             {
-                var line = "";
+                var line1 = "";
                 var line2 = "";
                 var line3 = "";
                 for (int c = 0; c < cols; c++)
                 {
                     var pipe = pipes.FirstOrDefault(p => p.Col == c && p.Line == l);
-                    var symbol = GetPretty(pipe?.Shape ?? ' ');
-                    line += " ";
-                    line += (pipe != null && !pipe.Outsides.Any(o => o == Direction.Up)) ? "░" : " ";
-                    line += " ";
-                    line2 += (pipe != null && pipe.Outsides.Any(o => o == Direction.Right)) ? "░" : " ";
-                    line2 += symbol;
-                    line2 += (pipe != null && pipe.Outsides.Any(o => o == Direction.Left)) ? "░" : " ";
-                    line3 += " ";
-                    line3 += (pipe != null && !pipe.Outsides.Any(o => o == Direction.Down)) ? "░" : " ";
-                    line3 += " ";
+                    if (pipe == null)
+                    {
+                        line1 += "   ";
+                        line2 += "   ";
+                        line3 += "   ";
+                    }
+                    else
+                    {
+                        var symbol = pipe.GetSymbol();
+                        line1 += symbol.line1;
+                        line2 += symbol.line2;
+                        line3 += symbol.line3;
+                    }
                 }
-                writer.WriteLine(line);
+                writer.WriteLine(line1);
                 writer.WriteLine(line2);
                 writer.WriteLine(line3);
             }
@@ -357,7 +449,7 @@ namespace AdventOfCode8.Aoc2023
             };
         }
 
-        private string GetPretty(char symbol)
+        internal static string GetPretty(char symbol)
         {
             return symbol switch
             {
@@ -407,10 +499,21 @@ namespace AdventOfCode8.Aoc2023
 
             public (string line1, string line2, string line3) GetSymbol()
             {
-                var line1 = "";
-                var line2 = "";
-                var line3 = "";
+                var line1 = "   ";
+                var line2 = " " + Day10.GetPretty(Shape) + " ";
+                var line3 = "   ";
 
+                var leftOut = Outsides.Any(o => o == Direction.Left);
+                var upOut = Outsides.Any(o => o == Direction.Up);
+                switch (Shape)
+                {
+                    case '|':
+                        line1 = (leftOut ? "░" : " ") + '|' + (!leftOut ? "░" : " ");
+                        line2 = (leftOut ? "░" : " ") + '|' + (!leftOut ? "░" : " ");
+                        line3 = (leftOut ? "░" : " ") + '|' + (!leftOut ? "░" : " ");
+                        break;
+                }
+                
                 return (line1, line2, line3);
             }
 
