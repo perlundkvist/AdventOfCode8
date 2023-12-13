@@ -34,15 +34,30 @@ namespace AdventOfCode8.Aoc2023
         private object GetSum2(List<List<string>> records)
         {
             var sum = 0;
-            for (int l = 0; l < records.Count; l++)
+            foreach (var record in records)
             {
-                for (int i = 0; i < records[0].Count; i++)
+                sum += GetSum2(record);
+            }
+            return sum;
+        }
+
+        private int GetSum2(List<string> record)
+        {
+            var charArrays = record.Select(x => x.ToCharArray()).ToList();
+            var sum = 0;
+            for (var l = 0; l < charArrays.Count; l++)
+            {
+                var charArray = charArrays[l];
+                for (var i = 0; i < charArray.Length; i++)
                 {
-                    var record = records[l];
-                    records.RemoveAt(l);
-                    var chars = record.ToArray();
-                    records.Insert(l, record);
+                    if (i > 0)
+                        charArray[i-1] = charArray[i - 1] == '#' ? '.' : '#';
+                    charArray[i] = charArray[i] == '#' ? '.' : '#';
+                    var testRecord = charArrays.Select(a => new string(a)).ToList();
+                    sum = GetSum(testRecord, true);
                 }
+                if (l > 0)
+                    charArray[^1] = charArray[^1] == '#' ? '.' : '#';
             }
             return sum;
         }
@@ -91,32 +106,35 @@ namespace AdventOfCode8.Aoc2023
             Console.WriteLine();
         }
 
-        private int GetSum(List<string> record)
+        private int GetSum(List<string> record, bool linesOnly = false)
         {
             var sum = 0;
 
             var cols = record[0].Length;
             var lines = record.Count;
 
-            for (var c = 1; c < cols; c++)
+            if (!linesOnly)
             {
-                var allMatch = true;
-                foreach (var line in record)
+                for (var c = 1; c < cols; c++)
                 {
-                    if (Mirrors(line, c))
-                        continue;
-                    
-                    allMatch = false;
-                    break;
-                }
-                if (!allMatch)
-                    continue;
-                sum += c;
-                c++;
-            }
+                    var allMatch = true;
+                    foreach (var line in record)
+                    {
+                        if (Mirrors(line, c))
+                            continue;
 
-            if (sum > 0)
-                return sum;
+                        allMatch = false;
+                        break;
+                    }
+                    if (!allMatch)
+                        continue;
+                    sum += c;
+                    c++;
+                }
+
+                if (sum > 0)
+                    return sum;
+            }
 
             for (var l = 0; l < lines; l++)
             {
