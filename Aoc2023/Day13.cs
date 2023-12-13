@@ -30,18 +30,48 @@ namespace AdventOfCode8.Aoc2023
 
         private object GetSum(List<List<string>> records)
         {
-            long sum = 0;
+            int sum = 0;
             var idx = 0;
             foreach(var record in records)
             {
                 var s = GetSum(record);
                 sum += s;
+                Console.WriteLine($"Record {idx} sum: {s}");
+                PrintRecord(record, s);
                 idx++;
             }
             return sum;
         }
 
-        private long GetSum(List<string> record)
+        private void PrintRecord(List<string> record, int mirror)
+        {
+            var colSplit = mirror >= 100 ? 0 : mirror;
+            var lineSplit = mirror >= 100 ? mirror/ 100 : 0;
+
+            var idx = 0;
+            var head = "   12345678901234567890"[..(record[0].Length + 3)];
+            Console.WriteLine(colSplit > 0 ? $"{head[..colSplit]} {head[colSplit..]}" : head);
+            foreach (var line in record)
+            {
+                if (lineSplit > 0 && idx == lineSplit)
+                    Console.WriteLine("   ".PadRight(line.Length + 3, '-'));
+
+                Console.Write($"{(idx + 1):00} ");
+                if (colSplit == 0 && lineSplit == 0)
+                    Console.WriteLine("line");
+
+                if (colSplit > 0)
+                    Console.WriteLine($"{line[..colSplit]}|{line[colSplit..]}");
+
+                if (lineSplit > 0)
+                    Console.WriteLine(line);
+
+                idx++;
+            }
+            Console.WriteLine();
+        }
+
+        private int GetSum(List<string> record)
         {
             var sum = 0;
 
@@ -70,13 +100,12 @@ namespace AdventOfCode8.Aoc2023
 
             for (var l = 0; l < lines - 1; l++)
             {
-                if (!MirrorsDown(l, record))
+                if (!MirrorsDown2(l, record))
                     continue;
-                sum = l + 1;
+                sum = l * 100;
                 break;
             }
-
-            return sum * 100;
+            return sum;
         }
 
         private bool MirrorsDown(int start, List<string> lines)
@@ -101,15 +130,17 @@ namespace AdventOfCode8.Aoc2023
 
         private bool MirrorsDown2(int start, List<string> lines)
         {
-            Console.WriteLine($"MirrorsDown2: {start}");
+            //Console.WriteLine($"MirrorsDown2: {start}");
+            if (start == 0)
+                return false;
             var above = lines[..start];
-            var below = lines[(start + 1)..];
-            var shortest = above.Count() < below.Count() ? above : below;
+            above.Reverse();
+            var below = lines[start..];
+            var shortest = above.Count < below.Count ? above : below;
             var longest = shortest == above ? below : above;
             longest = longest[..shortest.Count];
-            shortest.Reverse();
             var equal = shortest.SequenceEqual(longest);
-            return true;
+            return equal;
         }
 
         private bool Mirrors(string line, int col)
