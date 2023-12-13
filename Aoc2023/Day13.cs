@@ -16,16 +16,35 @@ namespace AdventOfCode8.Aoc2023
 
             var start = DateTime.Now;
 
-            var input = GetInput("2023_13").ToImmutableList();
+            var input = GetInput("2023_13s").ToImmutableList();
             var records = GetMaps(input);
 
-            //var sum = GetSum(records[3]);
+            //var sum = GetSum(records[99]);
 
             var sum = GetSum(records);
+            Console.WriteLine($"Sum: {sum}.");
 
-            Console.WriteLine($"Sum: {sum}. 39815 is too low");
+            sum = GetSum2(records);
+            Console.WriteLine($"Sum: {sum}.");
+
 
             Console.WriteLine($"{DateTime.Now - start}");
+        }
+
+        private object GetSum2(List<List<string>> records)
+        {
+            var sum = 0;
+            for (int l = 0; l < records.Count; l++)
+            {
+                for (int i = 0; i < records[0].Count; i++)
+                {
+                    var record = records[l];
+                    records.RemoveAt(l);
+                    var chars = record.ToArray();
+                    records.Insert(l, record);
+                }
+            }
+            return sum;
         }
 
         private object GetSum(List<List<string>> records)
@@ -36,8 +55,9 @@ namespace AdventOfCode8.Aoc2023
             {
                 var s = GetSum(record);
                 sum += s;
-                Console.WriteLine($"Record {idx} sum: {s}");
-                PrintRecord(record, s);
+                Console.WriteLine($"Record {idx} sum: {s}. Total {sum}");
+                //if (s == 0)
+                //    PrintRecord(record, s);
                 idx++;
             }
             return sum;
@@ -49,8 +69,8 @@ namespace AdventOfCode8.Aoc2023
             var lineSplit = mirror >= 100 ? mirror/ 100 : 0;
 
             var idx = 0;
-            var head = "   12345678901234567890"[..(record[0].Length + 3)];
-            Console.WriteLine(colSplit > 0 ? $"{head[..colSplit]} {head[colSplit..]}" : head);
+            var head = "12345678901234567890"[..(record[0].Length + 3)];
+            Console.WriteLine($"   {(colSplit > 0 ? $"{head[..colSplit]} {head[colSplit..]}" : head)}");
             foreach (var line in record)
             {
                 if (lineSplit > 0 && idx == lineSplit)
@@ -58,7 +78,7 @@ namespace AdventOfCode8.Aoc2023
 
                 Console.Write($"{(idx + 1):00} ");
                 if (colSplit == 0 && lineSplit == 0)
-                    Console.WriteLine("line");
+                    Console.WriteLine($"{line}");
 
                 if (colSplit > 0)
                     Console.WriteLine($"{line[..colSplit]}|{line[colSplit..]}");
@@ -78,7 +98,7 @@ namespace AdventOfCode8.Aoc2023
             var cols = record[0].Length;
             var lines = record.Count;
 
-            for (var c = 1; c < cols - 1; c++)
+            for (var c = 1; c < cols; c++)
             {
                 var allMatch = true;
                 foreach (var line in record)
@@ -91,19 +111,19 @@ namespace AdventOfCode8.Aoc2023
                 }
                 if (!allMatch)
                     continue;
-                sum = c;
-                break;
+                sum += c;
+                c++;
             }
 
             if (sum > 0)
                 return sum;
 
-            for (var l = 0; l < lines - 1; l++)
+            for (var l = 0; l < lines; l++)
             {
                 if (!MirrorsDown2(l, record))
                     continue;
-                sum = l * 100;
-                break;
+                sum += l * 100;
+                l++;
             }
             return sum;
         }
