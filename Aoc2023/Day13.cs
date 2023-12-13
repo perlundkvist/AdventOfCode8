@@ -16,14 +16,14 @@ namespace AdventOfCode8.Aoc2023
 
             var start = DateTime.Now;
 
-            var input = GetInput("2023_13s").ToImmutableList();
+            var input = GetInput("2023_13").ToImmutableList();
             var records = GetMaps(input);
 
-            var sum = GetSum(records[1]);
+            //var sum = GetSum(records[3]);
 
-            //var sum = GetSum(records);
+            var sum = GetSum(records);
 
-            Console.WriteLine($"Sum: {sum}. 23215 is too low");
+            Console.WriteLine($"Sum: {sum}. 39815 is too low");
 
             Console.WriteLine($"{DateTime.Now - start}");
         }
@@ -70,7 +70,7 @@ namespace AdventOfCode8.Aoc2023
 
             for (var l = 0; l < lines - 1; l++)
             {
-                if (!MirrorsDown2(l, record))
+                if (!MirrorsDown(l, record))
                     continue;
                 sum = l + 1;
                 break;
@@ -81,7 +81,7 @@ namespace AdventOfCode8.Aoc2023
 
         private bool MirrorsDown(int start, List<string> lines)
         {
-            Console.WriteLine($"MirrorsDown: {start}"); 
+            //Console.WriteLine($"MirrorsDown: {start}"); 
             var idx = start;
             var matchIdx = start + 1;
             while (idx >= 0 && matchIdx < lines.Count)
@@ -89,7 +89,7 @@ namespace AdventOfCode8.Aoc2023
                 var thisLine = lines[idx];
                 var matchLine = lines[matchIdx];
 
-                Console.WriteLine($"idx: {idx}, matchIdx: {matchIdx} {Environment.NewLine}{thisLine}{Environment.NewLine}{matchLine}");
+                //Console.WriteLine($"idx: {idx}, matchIdx: {matchIdx} {Environment.NewLine}{thisLine}{Environment.NewLine}{matchLine}");
 
                 if (thisLine != matchLine)
                     return false;
