@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/AdventOfCode8.PLU5.plu.pui
+/AdventOfCode8.prj

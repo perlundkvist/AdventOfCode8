@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Data;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Text;
@@ -18,8 +19,11 @@ namespace AdventOfCode8.Aoc2023
             var input = GetInput("2023_13s").ToImmutableList();
             var records = GetMaps(input);
 
-            var sum = GetSum(records);
-            Console.WriteLine($"Sum: {sum}");
+            var sum = GetSum(records[1]);
+
+            //var sum = GetSum(records);
+
+            Console.WriteLine($"Sum: {sum}. 23215 is too low");
 
             Console.WriteLine($"{DateTime.Now - start}");
         }
@@ -27,9 +31,12 @@ namespace AdventOfCode8.Aoc2023
         private object GetSum(List<List<string>> records)
         {
             long sum = 0;
+            var idx = 0;
             foreach(var record in records)
             {
-                sum += GetSum(record);
+                var s = GetSum(record);
+                sum += s;
+                idx++;
             }
             return sum;
         }
@@ -37,39 +44,85 @@ namespace AdventOfCode8.Aoc2023
         private long GetSum(List<string> record)
         {
             var sum = 0;
-            for (int l = 0; l < record.Count; l++)
+
+            var cols = record[0].Length;
+            var lines = record.Count;
+
+            for (var c = 1; c < cols - 1; c++)
             {
-                var line = record[l];
                 var allMatch = true;
-                for (int c = 1; c < line.Length - 1; c++)
+                foreach (var line in record)
                 {
-                    if (!ColMirrors(line, c))
-                    {
-                        allMatch = false;
-                        break;
-                    }
+                    if (Mirrors(line, c))
+                        continue;
+                    
+                    allMatch = false;
+                    break;
                 }
                 if (!allMatch)
                     continue;
+                sum = c;
+                break;
             }
-            return sum;
+
+            if (sum > 0)
+                return sum;
+
+            for (var l = 0; l < lines - 1; l++)
+            {
+                if (!MirrorsDown2(l, record))
+                    continue;
+                sum = l + 1;
+                break;
+            }
+
+            return sum * 100;
         }
 
-        private bool ColMirrors(string line, int col)
+        private bool MirrorsDown(int start, List<string> lines)
+        {
+            Console.WriteLine($"MirrorsDown: {start}"); 
+            var idx = start;
+            var matchIdx = start + 1;
+            while (idx >= 0 && matchIdx < lines.Count)
+            {
+                var thisLine = lines[idx];
+                var matchLine = lines[matchIdx];
+
+                Console.WriteLine($"idx: {idx}, matchIdx: {matchIdx} {Environment.NewLine}{thisLine}{Environment.NewLine}{matchLine}");
+
+                if (thisLine != matchLine)
+                    return false;
+                idx--;
+                matchIdx++;
+            }
+            return true;
+        }
+
+        private bool MirrorsDown2(int start, List<string> lines)
+        {
+            Console.WriteLine($"MirrorsDown2: {start}");
+            var above = lines[..start];
+            var below = lines[(start + 1)..];
+            var shortest = above.Count() < below.Count() ? above : below;
+            var longest = shortest == above ? below : above;
+            longest = longest[..shortest.Count];
+            shortest.Reverse();
+            var equal = shortest.SequenceEqual(longest);
+            return true;
+        }
+
+        private bool Mirrors(string line, int col)
         {
             var left = line.Substring(0, col);
-            left.Reverse();
+            left = new string(left.Reverse().ToArray());
             var right = line.Substring(col);
 
             var shortest = left.Count() < right.Count() ? left : right;
             var longest = shortest == left ? right : left;
-            for (int c = 0; c < shortest.Count(); c++)
-            {
-                if (shortest[c] != longest[c])
-                    return false;
-            }
 
-            return true;
+            longest = longest.Substring(0, shortest.Count());
+            return shortest == longest;
         }
 
         private List<List<string>> GetMaps(ImmutableList<string> input)
@@ -86,6 +139,8 @@ namespace AdventOfCode8.Aoc2023
                 }
                 map.Add(line);
             }
+            if (map.Any())
+                maps.Add(map);
             return maps;
         }
     }
