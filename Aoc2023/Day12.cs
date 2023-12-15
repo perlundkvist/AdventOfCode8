@@ -14,7 +14,7 @@ namespace AdventOfCode8.Aoc2023
 
             var start = DateTime.Now;
 
-            var input = GetInput("2023_12").ToImmutableList();
+            var input = GetInput("2023_12s").ToImmutableList();
             var records = input.Select(i => new CondictionRecord(i)).ToList();
 
             var sum = GetSum(records);
@@ -35,8 +35,10 @@ namespace AdventOfCode8.Aoc2023
 
         private long GetSum(CondictionRecord record)
         {
-            if (record.Groups.All(g => !g.Contains('?')))
-                return record.Groups.Count();
+            foreach (var group in record.Groups)
+            {
+
+            }
             return 0;
         }
 
