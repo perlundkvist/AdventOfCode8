@@ -25,7 +25,7 @@ namespace AdventOfCode8.Aoc2023
             Console.WriteLine($"Sum: {sum}.");
 
             sum = GetSum2(records);
-            Console.WriteLine($"Sum: {sum}.");
+            Console.WriteLine($"Sum: {sum}. 24700 is too low, 56300 is too high");
 
 
             Console.WriteLine($"{DateTime.Now - start}");
@@ -43,34 +43,63 @@ namespace AdventOfCode8.Aoc2023
 
         private int GetSum2(List<string> record)
         {
+            //Console.WriteLine("Before test");
+            //PrintRecord(record, 0);
+
             var charArrays = record.Select(x => x.ToCharArray()).ToList();
-            var sum = 0;
             for (var l = 0; l < charArrays.Count; l++)
             {
                 var charArray = charArrays[l];
                 for (var i = 0; i < charArray.Length; i++)
                 {
                     if (i > 0)
-                        charArray[i-1] = charArray[i - 1] == '#' ? '.' : '#';
+                        charArray[i - 1] = charArray[i - 1] == '#' ? '.' : '#';
                     charArray[i] = charArray[i] == '#' ? '.' : '#';
                     var testRecord = charArrays.Select(a => new string(a)).ToList();
-                    sum = GetSum(testRecord, true);
+                    var sums = GetAllSums(testRecord);
+                    //if (l == 1)
+                    //{
+                    //Console.WriteLine("Testing");
+                    //PrintRecord(testRecord, 0);
+                    //Console.WriteLine($"Test sum {sum}");
+                    //Console.WriteLine();
+                    //}
+                    foreach (var sum in sums.Where(s => s > 0))
+                    {
+                        if (sum > 100)
+                        {
+                            if (LinePartOfSpan(l, sum / 100, record.Count))
+                                return sum;
+                        }
+                    }
                 }
-                if (l > 0)
-                    charArray[^1] = charArray[^1] == '#' ? '.' : '#';
+                charArray[^1] = charArray[^1] == '#' ? '.' : '#';
             }
-            return sum;
+            //Console.WriteLine($"Prev mirror: {GetSum(record, true)}");
+            //PrintRecord(record, 0);
+            return 0;
+        }
+
+        private bool LinePartOfSpan(int line, int mirror, int count)
+        {
+            var span = Math.Min(count - mirror, mirror);
+            var start = mirror - span;
+            var end = mirror + span - 1;
+            return line >= start && line <= end;
         }
 
         private object GetSum(List<List<string>> records)
         {
             int sum = 0;
             var idx = 0;
+            int sum2 = 0;
             foreach(var record in records)
             {
                 var s = GetSum(record);
+                var sums = GetAllSums(record);
+                sum2 += sums.Sum(s => s);
                 sum += s;
-                Console.WriteLine($"Record {idx} sum: {s}. Total {sum}");
+                //Console.WriteLine($"Record {idx} sum: {s}. Total {sum}");
                 //if (s == 0)
                 //    PrintRecord(record, s);
                 idx++;
@@ -144,6 +173,41 @@ namespace AdventOfCode8.Aoc2023
                 l++;
             }
             return sum;
+        }
+
+        private List<int> GetAllSums(List<string> record)
+        {
+            var sums = new List<int>();
+
+            var cols = record[0].Length;
+            var lines = record.Count;
+
+            for (var c = 1; c < cols; c++)
+            {
+                var allMatch = true;
+                foreach (var line in record)
+                {
+                    if (Mirrors(line, c))
+                        continue;
+
+                    allMatch = false;
+                    break;
+                }
+                if (!allMatch)
+                    continue;
+                if (c > 0)
+                    sums.Add(c);
+                c++;
+            }
+
+            for (var l = 0; l < lines; l++)
+            {
+                if (!MirrorsDown2(l, record))
+                    continue;
+                sums.Add(l * 100);
+                l++;
+            }
+            return sums;
         }
 
         private bool MirrorsDown(int start, List<string> lines)
