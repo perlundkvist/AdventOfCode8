@@ -37,7 +37,12 @@ namespace AdventOfCode8.Aoc2023
         {
             foreach (var group in record.Groups)
             {
-
+                Logg.WriteLine($"{group}");
+                for (var i = 0; i < group.Length; i++)
+                {
+                    var first = group[..(i + 1)];
+                    var last = group[(i + 2)..];
+                }
             }
             return 0;
         }
@@ -50,7 +55,7 @@ namespace AdventOfCode8.Aoc2023
             public CondictionRecord(string input)
             {
                 var split = input.Split(' ');
-                Groups = split[0].Split('.').ToList();
+                Groups = split[0].Split('.', StringSplitOptions.RemoveEmptyEntries).ToList();
                 Corrects = split[1].Split(",").Select(i => int.Parse(i)).ToList();
             }
         }

@@ -57,7 +57,7 @@ namespace AdventOfCode8
             internal void WriteLine(FormattableString text)
             {
                 if (DoLog)
-                    Console.WriteLine(text.Format);
+                    Console.WriteLine(text.ToString());
             }
 
             internal void WriteLine()
