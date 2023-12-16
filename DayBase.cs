@@ -9,6 +9,7 @@ namespace AdventOfCode8
 {
     public partial class DayBase
     {
+        public enum Direction { Left, Right, Up, Down }
 
         public static List<string> GetInput(string name)
         {
@@ -60,15 +61,15 @@ namespace AdventOfCode8
             return Math.Abs(p1.X - p2.X) + Math.Abs(p1.Y - p2.Y);
         }
 
-        //public static IEnumerable<int> AllIndexesOf(this string str, string searchstring)
-        //{
-        //    var minIndex = str.IndexOf(searchstring);
-        //    while (minIndex != -1)
-        //    {
-        //        yield return minIndex;
-        //        minIndex = str.IndexOf(searchstring, minIndex + 1);
-        //    }
-        //}
+        public static IEnumerable<int> AllIndexesOf(this string str, string searchstring)
+        {
+            var minIndex = str.IndexOf(searchstring);
+            while (minIndex != -1)
+            {
+                yield return minIndex;
+                minIndex = str.IndexOf(searchstring, minIndex + 1);
+            }
+        }
 
     }
 

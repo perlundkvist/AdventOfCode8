@@ -11,8 +11,6 @@ namespace AdventOfCode8.Aoc2023
     internal class Day10 : DayBase
     {
 
-        private enum Direction { Left, Right, Up, Down }
-
         internal void Run()
         {
             var start = DateTime.Now;
