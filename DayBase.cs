@@ -4,12 +4,15 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace AdventOfCode8
 {
     public partial class DayBase
     {
         public enum Direction { Left, Right, Up, Down }
+
+        public static Logger Logg = new Logger();
 
         public static List<string> GetInput(string name)
         {
@@ -23,6 +26,7 @@ namespace AdventOfCode8
                 return new List<string>();
             }
         }
+
 
         public static List<string> GetInput(int day)
         {
@@ -38,6 +42,29 @@ namespace AdventOfCode8
                 sOutput.Append(arrInput[i].ToString("X2"));
             }
             return sOutput.ToString();
+        }
+
+        public class Logger
+        {
+            public bool DoLog { get; set; } = true;
+
+            internal void Write(FormattableString text)
+            {
+                if (DoLog)
+                    Console.Write(text.ToString());
+            }
+
+            internal void WriteLine(FormattableString text)
+            {
+                if (DoLog)
+                    Console.WriteLine(text.Format);
+            }
+
+            internal void WriteLine()
+            {
+                if (DoLog)
+                    Console.WriteLine();
+            }
         }
 
         public record LongPoint(long X, long Y)

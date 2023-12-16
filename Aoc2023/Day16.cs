@@ -19,6 +19,7 @@ namespace AdventOfCode8.Aoc2023
             var sum = GetSum(input, new(0, 0, Direction.Right, input));
             Console.WriteLine($"Sum: {sum}. 7059 too low");
 
+            Logg.DoLog = false;
             sum = GetSum2(input);
             Console.WriteLine($"Sum2: {sum}.");
 
@@ -64,20 +65,20 @@ namespace AdventOfCode8.Aoc2023
                     break;
 
                 map[beam.Line, beam.Col]++;
-                //Console.Write($"{beam} -> ");
+                Logg.Write($"{beam} -> ");
                 var newBeam = beam.Move();
                 if (beam.Line < 0 || beam.Line >= lines || beam.Col < 0 || beam.Col >= cols)
                 {
-                    //Console.WriteLine("Done!");
-                    //Console.WriteLine();
+                    Logg.WriteLine($"Done!");
+                    Logg.WriteLine();
                     beams.Remove(beam);
                 }
                 else {
                     var tried = triedPositions.FirstOrDefault(p => p.Line == beam.Line && p.Col == beam.Col);
                     if (tried != null && tried.Directions.Contains(beam.Direction))
                     {
-                        //Console.WriteLine($"Tried before {beam}");
-                        //Console.WriteLine();
+                        Logg.WriteLine($"Tried before {beam}");
+                        Logg.WriteLine();
                         beams.Remove(beam);
                     }
                     else
@@ -87,7 +88,7 @@ namespace AdventOfCode8.Aoc2023
                             tried = new Position(beam);
                             triedPositions.Add(tried);
                         }
-                        //Console.WriteLine($"{beam}");
+                        Logg.WriteLine($"{beam}");
                         tried.Directions.Add(beam.Direction);
                     }
                 }
@@ -95,7 +96,7 @@ namespace AdventOfCode8.Aoc2023
                 if (newBeam != null)
                 {
                     beams.Add(newBeam);
-                    //Console.WriteLine($"Added {newBeam}");
+                    Logg.WriteLine($"Added {newBeam}");
                 }
             }
 
@@ -136,7 +137,7 @@ namespace AdventOfCode8.Aoc2023
             {
                 var tile = layout[Line][Col];
                 Beam? newBeam = null;
-                //Console.Write($" {tile} ");
+                Logg.Write($" {tile} ");
                 switch (Direction) {
                     case Direction.Left:
                         switch (tile)
