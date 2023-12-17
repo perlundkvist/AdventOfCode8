@@ -38,10 +38,14 @@ namespace AdventOfCode8.Aoc2023
             foreach (var group in record.Groups)
             {
                 Logg.WriteLine($"{group}");
+                var fix = group.AllIndexesOf("#");
                 for (var i = 0; i < group.Length; i++)
                 {
+                    if (fix.Contains(i))
+                        continue;
+
                     var first = group[..(i + 1)];
-                    var last = group[(i + 2)..];
+                    //var last = group[(i + 2)..];
                 }
             }
             return 0;
