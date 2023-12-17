@@ -35,20 +35,36 @@ namespace AdventOfCode8.Aoc2023
 
         private long GetSum(CondictionRecord record)
         {
+            var sum = 0L;
             foreach (var group in record.Groups)
             {
                 Logg.WriteLine($"{group}");
-                var fix = group.AllIndexesOf("#");
-                for (var i = 0; i < group.Length; i++)
-                {
-                    if (fix.Contains(i))
-                        continue;
-
-                    var first = group[..(i + 1)];
-                    //var last = group[(i + 2)..];
-                }
+                var splits = GetSplits(group);
             }
-            return 0;
+            return sum;
+        }
+
+        private List<List<int>> GetSplits(string group)
+        {
+            var splits = new List<List<int>>();
+            if (group.All(c => c == '#')) 
+            {
+                splits.Add(new List<int> { group.Length });
+                return splits;
+            }
+
+            //var fix = group.AllIndexesOf("#");
+            for (var i = 0; i < group.Length; i++)
+            {
+                //if (fix.Contains(i))
+                //    continue;
+                var first = group[..(i + 1)];
+                var rest = group[(i + 1)..];
+                if (rest.StartsWith("#"))
+                    continue;
+            }
+
+            return splits;
         }
 
         public class CondictionRecord
