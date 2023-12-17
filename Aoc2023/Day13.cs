@@ -16,10 +16,10 @@ namespace AdventOfCode8.Aoc2023
 
             var start = DateTime.Now;
 
-            var input = GetInput("2023_13s").ToImmutableList();
+            var input = GetInput("2023_13").ToImmutableList();
             var records = GetMaps(input);
 
-            //var sum = GetSum(records[99]);
+            var sums = GetAllSums(records[0]);
 
             var sum = GetSum(records);
             Console.WriteLine($"Sum: {sum}.");
@@ -66,11 +66,13 @@ namespace AdventOfCode8.Aoc2023
                     //}
                     foreach (var sum in sums.Where(s => s > 0))
                     {
-                        if (sum > 100)
+                        if (sum >= 100)
                         {
-                            if (LinePartOfSpan(l, sum / 100, record.Count))
+                            if (MirrorPartOfSpan(l, sum / 100, record.Count))
                                 return sum;
                         }
+                        else if (MirrorPartOfSpan(i, sum, charArray.Length))
+                            return sum;
                     }
                 }
                 charArray[^1] = charArray[^1] == '#' ? '.' : '#';
@@ -80,12 +82,12 @@ namespace AdventOfCode8.Aoc2023
             return 0;
         }
 
-        private bool LinePartOfSpan(int line, int mirror, int count)
+        private bool MirrorPartOfSpan(int idx, int mirror, int count)
         {
             var span = Math.Min(count - mirror, mirror);
             var start = mirror - span;
             var end = mirror + span - 1;
-            return line >= start && line <= end;
+            return idx >= start && idx <= end;
         }
 
         private object GetSum(List<List<string>> records)
