@@ -74,6 +74,25 @@ namespace AdventOfCode8
                 return Math.Abs(X - p2.X) + Math.Abs(Y - p2.Y);
             }
         }
+
+        public record Position(int Line, int Col)
+        {
+            public int ManhattanDistance(Position p2) => Math.Abs(Line - p2.Line) + Math.Abs(Col - p2.Col);
+        }
+
+        public record PositionInt(int Line, int Col, int Value) : Position(Line, Col) 
+        {
+            public PositionInt(int line, int col, string value) : this(line, col, int.Parse(value))
+            {
+
+            }
+        }
+
+        public record PositionChar(int Line, int Col, char Value) : Position(Line, Col)
+        {
+        }
+
+
     }
 
     public static class Extensions
