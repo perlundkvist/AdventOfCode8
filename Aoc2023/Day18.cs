@@ -20,10 +20,10 @@ namespace AdventOfCode8.Aoc2023
             DrawMap(map);
             Logg.WriteLine();
 
-            var filled = FillMap2(map);
-            DrawMap(map);
+            //var filled = FillMap2(map);
+            //DrawMap(map);
 
-            Console.WriteLine($"Contains: {filled}. 48975 too low");
+            //Console.WriteLine($"Contains: {filled}. 48975 too low");
 
             Console.WriteLine($"{DateTime.Now - start}");
         }
@@ -38,15 +38,16 @@ namespace AdventOfCode8.Aoc2023
             for (var line = minLine; line <= maxLine; line++)
             {
                 var filling = false;
+                var drawingLine = false;
                 var posOnLine = map.Where(p => p.Line == line).ToList();
-                //DrawMap(posOnLine);
+                DrawMap(posOnLine);
                 var minCol = posOnLine.Min(p => p.Col);
                 var maxCol = posOnLine.Max(p => p.Col);
-                //Logg.Write($"Line: {line} ({maxLine}), minCol: {minCol}, maxCol: {maxCol}. Filled {filled}");
+                Logg.Write($"Line: {line} ({maxLine}), minCol: {minCol}, maxCol: {maxCol}. Filled {filled}");
                 for (var col = minCol; col <= maxCol; col++)
                 {
                     var pos = posOnLine.FirstOrDefault(p => p.Line == line && p.Col == col);
-                    if (filling)
+                    if (filling) // Fill until next #
                     {
                         if (pos == null)
                             filled++;
@@ -56,13 +57,26 @@ namespace AdventOfCode8.Aoc2023
                         continue;
                     }
 
-                    if (pos == null)
+                    Logg.Write($"{(pos == null ? ' ' : '#')}");
+
+                    if (pos == null & !drawingLine) // Outside of trench
+                        continue;
+
+                    if (pos != null & drawingLine) // Continue draw the line
+                        continue;
+
+                    if (drawingLine && pos == null) // Line complete
                     {
-                        Logg.Write($" ");
+                        filling = !filling;
                         continue;
                     }
-
                     var next = map.FirstOrDefault(p => p.Line == line && p.Col == col + 1);
+                    if (next != null)
+                    {
+                        drawingLine = true;
+                        Logg.Write($"#");
+                        continue;
+                    }
                     filling = next == null;
                     Logg.Write($"#");
                 }
