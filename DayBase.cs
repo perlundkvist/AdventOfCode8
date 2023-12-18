@@ -92,6 +92,9 @@ namespace AdventOfCode8
         {
         }
 
+        public record PositionString(int Line, int Col, string Value) : Position(Line, Col)
+        {
+        }
 
     }
 
