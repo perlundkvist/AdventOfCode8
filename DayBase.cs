@@ -78,6 +78,14 @@ namespace AdventOfCode8
         public record Position(int Line, int Col)
         {
             public int ManhattanDistance(Position p2) => Math.Abs(Line - p2.Line) + Math.Abs(Col - p2.Col);
+
+            public (Position? up, Position? down, Position? left, Position? right) GetSurrounding(List<Position> map)
+            {
+                return new(map.FirstOrDefault(p => p.Line == Line - 1),
+                    map.FirstOrDefault(p => p.Line == Line + 1),
+                    map.FirstOrDefault(p => p.Col == Col - 1),
+                    map.FirstOrDefault(p => p.Col == Col + 1));
+            }
         }
 
         public record PositionInt(int Line, int Col, int Value) : Position(Line, Col) 
@@ -93,6 +101,10 @@ namespace AdventOfCode8
         }
 
         public record PositionString(int Line, int Col, string Value) : Position(Line, Col)
+        {
+        }
+
+        public record Position<T>(int Line, int Col, T Value) : Position(Line, Col)
         {
         }
 
