@@ -13,12 +13,13 @@ namespace AdventOfCode8.Aoc2023
             var start = DateTime.Now;
 
             var input = GetInput("2023_17s");
-            var map = GetMap(input); 
+            var map = GetMap(input);
+            
+            Logg.DoLog = false;
 
             var cost = GetCost(map);
-            Console.WriteLine($"Cost: {cost}");
+            Console.WriteLine($"Cost: {cost}"); // 48975 too high
 
-            //Logg.DoLog = false;
             //sum = GetSum2(input);
             //Console.WriteLine($"Sum2: {sum}.");
 
@@ -71,7 +72,10 @@ namespace AdventOfCode8.Aoc2023
             var lines = map.GetLength(0);
             var cols = map.GetLength(1);
             if (next.Line == lines - 1 && next.Col == cols - 1)
+            {
+                Console.WriteLine($"Found end at {next}. Cost: {costSoFar + next.Value}");
                 return costSoFar + next.Value;
+            }
 
             var newCost = minCost;
             var newMoves = direction == Direction.Up ? straightMoves + 1 : 0;
