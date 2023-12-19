@@ -79,12 +79,12 @@ namespace AdventOfCode8
         {
             public int ManhattanDistance(Position p2) => Math.Abs(Line - p2.Line) + Math.Abs(Col - p2.Col);
 
-            public (Position? up, Position? down, Position? left, Position? right) GetSurrounding(List<Position> map)
+            public (Position? up, Position? down, Position? left, Position? right) GetSurrounding(IEnumerable<Position> map)
             {
-                return new(map.FirstOrDefault(p => p.Line == Line - 1),
-                    map.FirstOrDefault(p => p.Line == Line + 1),
-                    map.FirstOrDefault(p => p.Col == Col - 1),
-                    map.FirstOrDefault(p => p.Col == Col + 1));
+                return new(map.FirstOrDefault(p => p.Line == Line - 1 && p.Col == Col),
+                    map.FirstOrDefault(p => p.Line == Line + 1 && p.Col == Col),
+                    map.FirstOrDefault(p => p.Line == Line && p.Col == Col - 1),
+                    map.FirstOrDefault(p => p.Line == Line && p.Col == Col + 1));
             }
         }
 
