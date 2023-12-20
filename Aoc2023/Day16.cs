@@ -16,6 +16,7 @@ namespace AdventOfCode8.Aoc2023
 
             var input = GetInput("2023_16");
 
+            Logg.DoLog = false;
             var sum = GetSum(input, new(0, 0, Direction.Right, input));
             Console.WriteLine($"Sum: {sum}. 7059 too low");
 
@@ -35,14 +36,14 @@ namespace AdventOfCode8.Aoc2023
             var cols = layout[0].Length;
             for ( var l = 0; l < lines; l++)
             {
-                Console.WriteLine($"Line {l}");
+                Logg.WriteLine($"Line {l}");
                 sum = Math.Max(sum, GetSum(layout, new (l, 0, Direction.Right, layout)));
                 sum = Math.Max(sum, GetSum(layout, new(l, cols - 1, Direction.Left, layout)));
             }
 
             for (var c = 0; c < cols; c++)
             {
-                Console.WriteLine($"Col {c}");
+                Logg.WriteLine($"Col {c}");
                 sum = Math.Max(sum, GetSum(layout, new(0, c, Direction.Down, layout)));
                 sum = Math.Max(sum, GetSum(layout, new(lines -1, c, Direction.Up, layout)));
             }
