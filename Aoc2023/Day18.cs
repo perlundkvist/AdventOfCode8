@@ -12,17 +12,25 @@ namespace AdventOfCode8.Aoc2023
         {
             var start = DateTime.Now;
 
-            Logg.DoLog = false;
+            //Logg.DoLog = false;
 
-            var input = GetInput("2023_18");
+            var input = GetInput("2023_18s");
             var plan = GetPlan(input);
             var map = GetMap(plan);
+            DrawMap(map);
+
+            var plan2 = GetPlan2(input);
+            var trenchLenght = plan2.Sum(p => p.start.ManhattanDistance(p.end));
+            var nodes = plan2.Select(p => p.start).ToList();
+            var area = Position.ShoelaceArea(nodes);
+
             DrawMap(map);
             Logg.WriteLine();
 
             var filled = FillMap(map);
 
             Console.WriteLine($"Contains: {filled}. 48975 too low");
+            Console.WriteLine($"Shoelace: {trenchLenght + area}. ");
             Console.WriteLine();
             Console.WriteLine($"{DateTime.Now - start}");
         }
@@ -177,6 +185,29 @@ namespace AdventOfCode8.Aoc2023
                 var direction = split[0] == "U" ? Direction.Up : split[0] == "D" ? Direction.Down : split[0] == "L" ? Direction.Left : Direction.Right;
                 var steps = int.Parse(split[1]);   
                 plan.Add((direction, steps, split[2]));
+            }
+            return plan;
+        }
+
+        private List<(Position start, Position end)> GetPlan2(List<string> input, bool useHex = false)
+        {
+            var plan = new List<(Position start, Position end)>();
+            var start = new Position(0, 0);
+            foreach (var line in input)
+            {
+                var split = line.Split(' ');
+                var direction = split[0].First();
+                var steps = int.Parse(split[1]);
+                var end = direction switch
+                {
+                    'U' => new Position(start.Line - steps, start.Col),
+                    'D' => new Position(start.Line + steps, start.Col),
+                    'L' => new Position(start.Line, start.Col - steps),
+                    'R' => new Position(start.Line, start.Col + steps),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+                plan.Add((start, end));
+                start = end;
             }
             return plan;
         }
