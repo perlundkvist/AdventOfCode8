@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AdventOfCode8.Aoc2023
+﻿namespace AdventOfCode8.Aoc2023
 {
     internal class Day17 : DayBase
     {
@@ -54,14 +48,14 @@ namespace AdventOfCode8.Aoc2023
             {
                 minCost += map[i-1, i] + map[i, i];
             }
-            var start = new PositionInt(0, 0, 0);
+            var start = new Position<int>(0, 0, 0);
             minCost = Math.Min(minCost, Move(start, 1, Direction.Right, 0, minCost, map));
             minCost =  Math.Min(minCost, Move(start, 1, Direction.Down, 0, minCost, map));
 
             return minCost;
         }
 
-        private int Move(PositionInt pos, int straightMoves, Direction direction, int costSoFar, int minCost, int[,] map)
+        private int Move(Position<int> pos, int straightMoves, Direction direction, int costSoFar, int minCost, int[,] map)
         {
             var next = GetNext(pos, direction, map);
             if (next == null || costSoFar + next.Value > minCost)
@@ -97,7 +91,7 @@ namespace AdventOfCode8.Aoc2023
             return costSoFar + newCost;
         }
 
-        private PositionInt? GetNext(Position pos, Direction nextDirection, int[,] map)
+        private Position<int>? GetNext(Position pos, Direction nextDirection, int[,] map)
         {
             var lines = map.GetLength(0);
             var cols = map.GetLength(1);
@@ -126,7 +120,7 @@ namespace AdventOfCode8.Aoc2023
                     col--;
                     break;
             }
-            return new PositionInt(line, col, map[line, col]);
+            return new Position<int>(line, col, map[line, col]);
         }
     }
 }
