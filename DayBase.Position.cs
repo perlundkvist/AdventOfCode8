@@ -29,13 +29,13 @@ public partial class DayBase
 
         public (Position? up, Position? down, Position? left, Position? right) GetSurrounding<T>(T[,] map)
         {
-            var lines = map.GetLength(0);
-            var cols = map.GetLength(1);
+            var maxLine = map.GetLength(0) - 1;
+            var maxCol = map.GetLength(1) - 1;
             return new (
                 Line > 0 ? new(Line - 1, Col) : null,
-                Line < lines ? new(Line + 1, Col) : null,
+                Line < maxLine  ? new(Line + 1, Col) : null,
                 Col > 0 ? new(Line, Col - 1) : null,
-                Col < cols ? new(Line, Col + 1) : null);
+                Col < maxCol -1 ? new(Line, Col + 1) : null);
         }
 
     }
