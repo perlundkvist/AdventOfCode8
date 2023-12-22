@@ -16,7 +16,7 @@ namespace AdventOfCode8.Aoc2023
 
             Logg.DoLog = false;
 
-            var input = GetInput("2023_21");
+            var input = GetInput("2023_21s");
 
             var map = GetMap(input);
             DrawMap(map);
