@@ -27,6 +27,17 @@ public partial class DayBase
                 map.FirstOrDefault(p => p.Line == Line && p.Col == Col + 1));
         }
 
+        public (Position? up, Position? down, Position? left, Position? right) GetSurrounding<T>(T[,] map)
+        {
+            var lines = map.GetLength(0);
+            var cols = map.GetLength(1);
+            return new (
+                Line > 0 ? new(Line - 1, Col) : null,
+                Line < lines ? new(Line + 1, Col) : null,
+                Col > 0 ? new(Line, Col - 1) : null,
+                Col < cols ? new(Line, Col + 1) : null);
+        }
+
     }
 
     public record PositionString(int Line, int Col, string Value) : Position(Line, Col)
