@@ -49,17 +49,23 @@
                 minCost += map[i-1, i] + map[i, i];
             }
             var start = new Position<int>(0, 0, 0);
-            minCost = Math.Min(minCost, Move(start, 1, Direction.Right, 0, minCost, map));
-            minCost =  Math.Min(minCost, Move(start, 1, Direction.Down, 0, minCost, map));
+            var visited = new HashSet<Visited>();
+            minCost = Math.Min(minCost, Move(start, 1, Direction.Right, 0, minCost, map, visited));
+            minCost =  Math.Min(minCost, Move(start, 1, Direction.Down, 0, minCost, map, visited));
 
             return minCost;
         }
 
-        private int Move(Position<int> pos, int straightMoves, Direction direction, int costSoFar, int minCost, int[,] map)
+        private int Move(Position<int> pos, int straightMoves, Direction direction, int costSoFar, int minCost, int[,] map, HashSet<Visited> visited)
         {
             var next = GetNext(pos, direction, map);
             if (next == null || costSoFar + next.Value > minCost)
                 return minCost;
+
+            var visit = new Visited(pos.Line, pos.Col, direction, straightMoves);
+            if (visited.Contains(visit))
+                return minCost;
+            visited.Add(visit);
 
             Logg.WriteLine($"{next}. Straight moves {straightMoves}, cost {costSoFar}");
 
@@ -67,26 +73,26 @@
             var cols = map.GetLength(1);
             if (next.Line == lines - 1 && next.Col == cols - 1)
             {
-                Console.WriteLine($"Found end at {next}. Cost: {costSoFar + next.Value}");
+                Logg.WriteLine($"Found end at {next}. Cost: {costSoFar + next.Value}");
                 return costSoFar + next.Value;
             }
 
             var newCost = minCost;
-            var newMoves = direction == Direction.Up ? straightMoves + 1 : 0;
-            if (newMoves < 3 && direction != Direction.Down)
-                newCost = Math.Min(newCost, Move(next, newMoves, Direction.Up, costSoFar + next.Value, minCost, map));
-
-            newMoves = direction == Direction.Right ? straightMoves + 1 : 0;
+            var newMoves = direction == Direction.Right ? straightMoves + 1 : 0;
             if (newMoves < 3 && direction != Direction.Left)
-                newCost = Math.Min(newCost, Move(next, newMoves, Direction.Right, costSoFar + next.Value, minCost, map));
+                newCost = Math.Min(newCost, Move(next, newMoves, Direction.Right, costSoFar + next.Value, minCost, map, [.. visited]));
 
             newMoves = direction == Direction.Down? straightMoves + 1 : 0;
             if (newMoves < 3 && direction != Direction.Up)
-                newCost = Math.Min(newCost, Move(next, newMoves, Direction.Down, costSoFar + next.Value, minCost, map));
+                newCost = Math.Min(newCost, Move(next, newMoves, Direction.Down, costSoFar + next.Value, minCost, map, [.. visited]));
+
+            newMoves = direction == Direction.Up ? straightMoves + 1 : 0;
+            if (newMoves < 3 && direction != Direction.Down)
+                newCost = Math.Min(newCost, Move(next, newMoves, Direction.Up, costSoFar + next.Value, minCost, map, [.. visited]));
 
             newMoves = direction == Direction.Left? straightMoves + 1 : 0;
             if (newMoves < 3 && direction != Direction.Right)
-                newCost = Math.Min(newCost, Move(next, newMoves, Direction.Left, costSoFar + next.Value, minCost, map));
+                newCost = Math.Min(newCost, Move(next, newMoves, Direction.Left, costSoFar + next.Value, minCost, map, [.. visited]));
 
             return costSoFar + newCost;
         }
@@ -122,5 +128,7 @@
             }
             return new Position<int>(line, col, map[line, col]);
         }
+
+        private record Visited(int Line, int Col, Direction Direction, int Steps) { }
     }
 }
