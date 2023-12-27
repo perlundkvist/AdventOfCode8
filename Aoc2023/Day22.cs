@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using static AdventOfCode8.DayBase;
@@ -14,7 +15,7 @@ namespace AdventOfCode8.Aoc2023
         {
             var start = DateTime.Now;
 
-            //Logg.DoLog = false;
+            Logg.DoLog = false;
 
             var input = GetInput("2023_22s");
             var cuboids = GetCuboids(input);
@@ -24,10 +25,69 @@ namespace AdventOfCode8.Aoc2023
             //below.ForEach(Logg.WriteLine);
 
             cuboids = Compress(cuboids);
+            //Logg.WriteLine("After compress");
+            //cuboids.ForEach(Logg.WriteLine);
+
+            var sum = CountBricks(cuboids);
+            Console.WriteLine($"Sum: {sum}.");
+
+            sum = CountFalling(cuboids);
+            Console.WriteLine($"Sum: {sum}.");
 
 
             Console.WriteLine();
             Console.WriteLine($"{DateTime.Now - start}");
+        }
+
+        private int CountBricks(List<Cuboid> cuboids)
+        {
+            var safe = new List<Cuboid>();
+            foreach (var cuboid in cuboids)
+            {
+                Logg.WriteLine($"Testing {cuboid}");
+                var above = GetAbove(cuboid, cuboids).Where(c => c.MinCorner.Z == cuboid.MaxCorner.Z + 1).ToList();
+                if (above.Count == 0)
+                {
+                    if (!safe.Contains(cuboid))
+                        safe.Add(cuboid);
+                    continue;
+                }
+                var singleSupport = false;
+                foreach (var cAbove in above)
+                {
+                    var below = GetBelow(cAbove, cuboids).Where(c => c.MaxCorner.Z == cAbove.MinCorner.Z - 1).ToList();
+                    if (below.Count > 1)
+                        continue;
+                    singleSupport = true;
+                    break;
+                }
+                if (!singleSupport & !safe.Contains(cuboid))
+                    safe.Add(cuboid);
+            }
+            safe.ForEach(Logg.WriteLine);
+            return safe.Count;
+        }
+
+        private int CountFalling(List<Cuboid> cuboids)
+        {
+            var sum = 0;
+            foreach(var cuboid in cuboids)
+            {
+                sum += CountFalling(cuboid, cuboids);
+            }
+
+            return sum;
+        }
+
+        private int CountFalling(Cuboid cuboid, List<Cuboid> cuboids)
+        {
+            var aboves = GetAbove(cuboid, cuboids).Where(c => c.MinCorner.Z == cuboid.MaxCorner.Z + 1).ToList();
+            foreach (var above in aboves)
+            {
+                aboves.AddRange(GetAbove(above, cuboids).Where(c => c.MinCorner.Z == cuboid.MaxCorner.Z + 1 && !aboves.Contains(c)).ToList());
+            }
+
+            return aboves.Count;
         }
 
         private List<Cuboid> Compress(List<Cuboid> cuboids)
@@ -43,7 +103,7 @@ namespace AdventOfCode8.Aoc2023
                 var belows = GetBelow(next, grounded);
                 var moveZ = 1 - next.MinCorner.Z;
                 if (belows.Count != 0)
-                    moveZ = belows.Max(c => c.MaxCorner.Z) - next.MinCorner.Z;
+                    moveZ = belows.Max(c => c.MaxCorner.Z) - next.MinCorner.Z + 1;
                 if (moveZ != 0)
                     grounded.Add(next.Move(new(0, 0, moveZ)));
                 else
@@ -55,19 +115,28 @@ namespace AdventOfCode8.Aoc2023
             return grounded;
         }
 
-        private List<Cuboid> GetBelow(Cuboid cuboid, List<Cuboid> grounded)
+        private List<Cuboid> GetAbove(Cuboid cuboid, List<Cuboid> map)
         {
             var minCorner = cuboid.MinCorner;
             var maxCorner = cuboid.MaxCorner;
 
-            var belows = grounded.Where(c => c.MaxCorner.Z < minCorner.Z).ToList();
-            belows = belows.Where(c => (minCorner.X >= c.MinCorner.X && minCorner.X <= c.MaxCorner.X) ||
-                (maxCorner.X >= c.MinCorner.X && maxCorner.X <= c.MaxCorner.X)).ToList();
-            belows = belows.Where(c => (minCorner.Y >= c.MinCorner.Y && minCorner.Y <= c.MaxCorner.Y) ||
-                (maxCorner.Y >= c.MinCorner.Y && maxCorner.Y <= c.MaxCorner.Y)).ToList();
+            var above = map.Where(c => c.MinCorner.Z > maxCorner.Z).ToList();
+            above = above.Where(c => minCorner.X <= c.MaxCorner.X && c.MinCorner.X <= cuboid.MaxCorner.X &&
+                minCorner.Y <= c.MaxCorner.Y && c.MinCorner.Y <= cuboid.MaxCorner.Y).ToList();
 
-            return belows;
+            return above;
+        }
 
+        private List<Cuboid> GetBelow(Cuboid cuboid, List<Cuboid> map)
+        {
+            var minCorner = cuboid.MinCorner;
+            var maxCorner = cuboid.MaxCorner;
+
+            var below = map.Where(c => c.MaxCorner.Z < minCorner.Z).ToList();
+            below = below.Where(c => minCorner.X <= c.MaxCorner.X && c.MinCorner.X <= cuboid.MaxCorner.X &&
+                minCorner.Y <= c.MaxCorner.Y && c.MinCorner.Y <= cuboid.MaxCorner.Y).ToList();
+
+            return below;
         }
 
         private List<Cuboid> GetCuboids(List<string> input)
