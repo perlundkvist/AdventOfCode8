@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,26 +14,26 @@ namespace AdventOfCode8.Aoc2023
         {
             var start = DateTime.Now;
 
+            Logg.DoLog = false;
+
             var input = GetInput("2023_14");
             var rocks = GetRocks(input);
             var sum = GetSum(rocks);
             Console.WriteLine($"Sum: {sum}.");
 
             sum = GetSum2(rocks);
-            Console.WriteLine($"Sum: {sum}.");
+            Console.WriteLine($"Sum: {sum}");
 
             Console.WriteLine($"{DateTime.Now - start}");
         }
 
-        private int GetSum2(List<Rock> rocks)
+        private int GetSum2Old(List<Rock> rocks)
         {
             var cycles = 0;
             var newRocks = rocks;
             var rocksList = new List<List<Rock>> { rocks };
             var maxLine = rocks.Max(r => r.Line);
             var maxCol = rocks.Max(r => r.Col);
-
-            //var id 
 
             while (true)
             {
@@ -53,10 +54,100 @@ namespace AdventOfCode8.Aoc2023
             return GetLoad(rocksList[index]);
         }
 
+
+        private int GetSum2(List<Rock> rocks)
+        {
+            var cycles = 0;
+            var newRocks = rocks;
+            var rocksList = new List<(string id, int load)>();
+            var rocksList2 = new List<List<Rock>> { rocks };
+            var maxLine = rocks.Max(r => r.Line);
+            var maxCol = rocks.Max(r => r.Col);
+
+            var id = GetId(newRocks);
+            rocksList.Add(new(id, GetLoad(newRocks)));
+            while (true)
+            {
+                Logg.WriteLine(cycles);
+                Print(newRocks);
+                cycles++;
+                newRocks = Cycle(newRocks);
+                id = GetId(newRocks);
+                if (rocksList.Any(l => l.id == id))
+                    break;
+                rocksList.Add(new (id, GetLoad(newRocks)));
+                rocksList2.Add(newRocks);
+                if (cycles % 1000 == 0)
+                    Console.WriteLine($"{cycles} cycles.");
+            }
+            rocksList.ForEach(r => Logg.WriteLine(r.id));
+            Logg.WriteLine();
+
+            Logg.WriteLine(id);
+            newRocks.ForEach(r => Logg.Write($"{r}, "));
+            Logg.WriteLine();
+            var first = rocksList.First(l => l.id == id);
+            Logg.WriteLine(first.id);
+            var index1 = rocksList.IndexOf(first);
+            var rocks2 = rocksList2[index1];
+            rocks2.ForEach(r => Logg.Write($"{r}, "));
+            Logg.WriteLine();
+            Print(newRocks);
+            Logg.WriteLine();
+            Print(rocks2);
+            var cycleLen = rocksList.Count - index1;
+            var index = (1000000000 - index1) % cycleLen + index1;
+            return rocksList[index].load;
+        }
+
+        private int GetSum3(List<Rock> rocks)
+        {
+            var cycles = 0;
+            var newRocks = rocks;
+            var rocksList = new List<(string id, int load)>();
+            var maxLine = rocks.Max(r => r.Line);
+            var maxCol = rocks.Max(r => r.Col);
+
+            var id = GetId(newRocks);
+            rocksList.Add(new(id, GetLoad(newRocks)));
+            while (true)
+            {
+                Logg.WriteLine(cycles);
+                Print(newRocks);
+                cycles++;
+                newRocks = Cycle(newRocks);
+                id = GetId(newRocks);
+                if (rocksList.Any(l => l.id == id))
+                {
+                    var first = rocksList.First(l => l.id == id);
+                    var index1 = rocksList.IndexOf(first);
+                    Console.WriteLine($"{cycles} equals {index1}. Load {first.load} -> {GetLoad(newRocks)}");
+                }
+                rocksList.Add(new(id, GetLoad(newRocks)));
+                if (cycles == 300)
+                    break;
+            }
+            return 0;
+        }
+
+
+        private string GetId(List<Rock> rocks)
+        {
+            var maxLine = rocks.Max(r => r.Line);
+            var maxCol = rocks.Max(r => r.Col);
+            var id = "".PadRight(maxLine * maxCol, '.').ToCharArray();
+            foreach (var rock in rocks) 
+            {
+                var idx = (rock.Col - 1) + ((rock.Line - 1) * maxCol);
+                id[idx] = rock.Shape;
+            }
+
+            return new string(id);
+        }
+
         private List<Rock> Cycle(List<Rock> rocks)
         {
             var newRocks = new List<Rock>(rocks.Select(r => r.Clone()).ToList());
-            var equals = rocks.SequenceEqual(newRocks);
             TiltNorth(newRocks);
             TiltWest(newRocks);
             TiltSouth(newRocks);
@@ -184,15 +275,18 @@ namespace AdventOfCode8.Aoc2023
     
         private void Print(List<Rock> rocks)
         {
+            if (!Logg.DoLog)
+                return;
+
             for (int l = rocks.Max(r => r.Line); l > 0; l--)
             {
                 for (var i = 1; i <= rocks.Max(r => r.Col); i++)
                 {
-                    Console.Write($"{rocks.FirstOrDefault(r => r.Line == l && r.Col == i)?.Shape ?? '.'}");
+                    Logg.Write($"{rocks.FirstOrDefault(r => r.Line == l && r.Col == i)?.Shape ?? '.'}");
                 }
-                Console.WriteLine($"  {l,3}");
+                Logg.WriteLine($"  {l,3}");
             }
-            Console.WriteLine();
+            Logg.WriteLine();
         }
 
     }
@@ -228,6 +322,11 @@ namespace AdventOfCode8.Aoc2023
         public override int GetHashCode()
         {
             return HashCode.Combine(Line, Col, Shape);
+        }
+
+        public override string ToString()
+        {
+            return $"[{Line},{Col},{Shape}]";
         }
     }
 }
