@@ -1,10 +1,22 @@
-﻿using System.Drawing;
-using System.Globalization;
+﻿using System.Globalization;
 
 namespace AdventOfCode8;
 
 public partial class DayBase
 {
+    //public class Position<T1>(T1 col, T1 line)
+    //{
+    //    public T1 Col { get; } = col;
+    //    public T1 Line { get; } = line;
+    //}
+
+    //public class Position<T1, T2>(T1 col, T1 line, T2 value)
+    //{
+    //    public T1 Col { get; } = col;
+    //    public T1 Line { get; } = line;
+    //    public T2 Value { get; } = value;
+    //}
+
     public record Position(int Line, int Col)
     {
         public int ManhattanDistance(Position p2) => Math.Abs(Line - p2.Line) + Math.Abs(Col - p2.Col);
@@ -15,9 +27,9 @@ public partial class DayBase
             var a = 0;
             for (var i = 0; i < n - 1; i++)
             {
-                a += area[i].Line * area[i + 1].Col - area[i + 1].Line * area[i].Col;
+                a += area[i].Col * area[i + 1].Line - area[i + 1].Col * area[i].Line;
             }
-            return Math.Abs(a + area[n - 1].Line * area[0].Col - area[0].Line * area[n - 1].Col) / 2;
+            return Math.Abs(a + area[n - 1].Col * area[0].Line - area[0].Col * area[n - 1].Line) / 2;
         }
 
         public (Position? up, Position? down, Position? left, Position? right) GetSurrounding(IEnumerable<Position> map)
@@ -125,6 +137,17 @@ public partial class DayBase
 
         public double GetTimeForX(double x) => (x - Start.X) / Velocity.X;
         public double GetTimeForY(double y) => (y - Start.Y) / Velocity.Y;
+    }
+
+    public static double ShoelaceArea(List<DPoint> v)
+    {
+        int n = v.Count;
+        double a = 0.0;
+        for (int i = 0; i < n - 1; i++)
+        {
+            a += v[i].X * v[i + 1].Y - v[i + 1].X * v[i].Y;
+        }
+        return Math.Abs(a + v[n - 1].X * v[0].Y - v[0].X * v[n - 1].Y) / 2.0;
     }
 
 }
