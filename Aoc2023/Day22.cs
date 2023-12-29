@@ -17,7 +17,7 @@ namespace AdventOfCode8.Aoc2023
 
             Logg.DoLog = false;
 
-            var input = GetInput("2023_22s");
+            var input = GetInput("2023_22");
             var cuboids = GetCuboids(input);
 
             //var below = GetBelow(cuboids[3], cuboids);
@@ -28,10 +28,11 @@ namespace AdventOfCode8.Aoc2023
             //Logg.WriteLine("After compress");
             //cuboids.ForEach(Logg.WriteLine);
 
-            var sum = CountBricks(cuboids);
+            var safe = CountBricks(cuboids);
+            var sum = safe.Count();
             Console.WriteLine($"Sum: {sum}.");
 
-            sum = CountFalling(cuboids);
+            sum = CountFalling(cuboids, safe);
             Console.WriteLine($"Sum: {sum}.");
 
 
@@ -39,7 +40,7 @@ namespace AdventOfCode8.Aoc2023
             Console.WriteLine($"{DateTime.Now - start}");
         }
 
-        private int CountBricks(List<Cuboid> cuboids)
+        private List<Cuboid> CountBricks(List<Cuboid> cuboids)
         {
             var safe = new List<Cuboid>();
             foreach (var cuboid in cuboids)
@@ -65,14 +66,18 @@ namespace AdventOfCode8.Aoc2023
                     safe.Add(cuboid);
             }
             safe.ForEach(Logg.WriteLine);
-            return safe.Count;
+            return safe;
         }
 
-        private int CountFalling(List<Cuboid> cuboids)
+        private int CountFalling(List<Cuboid> cuboids, List<Cuboid> safe)
         {
             var sum = 0;
-            foreach(var cuboid in cuboids)
+            var toTest = cuboids.Where(c => !safe.Contains(c)).ToList();
+            var testCount = toTest.Count();
+            var idx = 1;
+            foreach(var cuboid in toTest)
             {
+                Console.WriteLine($"{idx++} of {testCount}");
                 sum += CountFalling(cuboid, cuboids);
             }
 
@@ -81,13 +86,10 @@ namespace AdventOfCode8.Aoc2023
 
         private int CountFalling(Cuboid cuboid, List<Cuboid> cuboids)
         {
-            var aboves = GetAbove(cuboid, cuboids).Where(c => c.MinCorner.Z == cuboid.MaxCorner.Z + 1).ToList();
-            foreach (var above in aboves)
-            {
-                aboves.AddRange(GetAbove(above, cuboids).Where(c => c.MinCorner.Z == cuboid.MaxCorner.Z + 1 && !aboves.Contains(c)).ToList());
-            }
-
-            return aboves.Count;
+            cuboids = cuboids.ToList();
+            cuboids.Remove(cuboid);
+            var moved = Compress2(cuboids);
+            return moved.Count;
         }
 
         private List<Cuboid> Compress(List<Cuboid> cuboids)
@@ -113,6 +115,34 @@ namespace AdventOfCode8.Aoc2023
             }
 
             return grounded;
+        }
+
+        private List<Cuboid> Compress2(List<Cuboid> cuboids)
+        {
+            var grounded = new List<Cuboid>();
+            var moved = new List<Cuboid>();
+
+            cuboids = [.. cuboids.OrderBy(c => c.MinCorner.Z)];
+            while (true)
+            {
+                if (cuboids.Count == 0)
+                    break;
+                var next = cuboids.First();
+                var belows = GetBelow(next, grounded);
+                var moveZ = 1 - next.MinCorner.Z;
+                if (belows.Count != 0)
+                    moveZ = belows.Max(c => c.MaxCorner.Z) - next.MinCorner.Z + 1;
+                if (moveZ != 0)
+                {
+                    grounded.Add(next.Move(new(0, 0, moveZ)));
+                    moved.Add(next.Move(new(0, 0, moveZ)));
+                }
+                else
+                    grounded.Add(next);
+                cuboids.Remove(next);
+            }
+
+            return moved;
         }
 
         private List<Cuboid> GetAbove(Cuboid cuboid, List<Cuboid> map)
