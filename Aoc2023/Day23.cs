@@ -51,7 +51,7 @@ namespace AdventOfCode8.Aoc2023
                 toAdd.ForEach(m => moves.Push(m));
             }
 
-            Console.WriteLine($"Longest route: {longest}. 6038 too low");
+            Console.WriteLine($"Longest route: {longest}. 6210 too low");
         }
 
         private void Move(Position startPos, Position endPos, int steps, char[,] map, HashSet<Position> visited)
