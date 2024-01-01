@@ -16,14 +16,14 @@ namespace AdventOfCode8.Aoc2023
 
             var start = DateTime.Now;
 
-            var record = new CondictionRecord("??.#???#?????? 1,2,8");
+            var record = new CondictionRecord("#?.#???#?????? 1,2,8");
             var s = GetSum(record);
 
             var input = GetInput("2023_12").ToImmutableList();
 
             var records = input.Select(i => new CondictionRecord(i)).ToList();
             var sum = GetSum(records);
-            Console.WriteLine($"Sum: {sum}. 6601 is too low, 9064 is too high");
+            Console.WriteLine($"Sum: {sum}. 7195 is correct");
 
             Logg.DoLog = false;
             records = input.Select(i => new CondictionRecord(i, true)).ToList();
@@ -79,9 +79,13 @@ namespace AdventOfCode8.Aoc2023
                 Logg.WriteLine($"Indexes: {string.Join(",", ranges)}");
                 rangeList[idx++] = ranges;
             }
-            var combinations = GetCombinations(rangeList);
-            sum += TestCombinations(combinations, field);
-            Logg.WriteLine($"{combinations.Count} combinations, {sum} valid");
+            //var combinations = GetCombinations(rangeList);
+            //sum += TestCombinations(combinations, field);
+            //sum += TestCombinations(combinations, field);
+            //Logg.WriteLine($"{combinations.Count} combinations, {sum} valid");
+            rangeList[0] = rangeList[0].Where(r  => IsPossible(new Range(0, 0), r, field)).ToList();
+            sum += GetCombinations2(rangeList, field);
+            Logg.WriteLine($"Sum: {sum}");
             Logg.WriteLine();
             return sum;
         }
@@ -140,6 +144,35 @@ namespace AdventOfCode8.Aoc2023
                 }
             }
             return newCombinations;
+        }
+
+        private int GetCombinations2(List<Range>[] rangeList, string field)
+        {
+            if (rangeList.Length == 1)
+            {
+                return rangeList[0].Count;
+            }
+            var sum = 0;
+            foreach (var range in rangeList[0])
+            {
+                var greater = rangeList[1].Where(r => r.Start.Value > range.End.Value).ToList();
+                greater = greater.Where(g => IsPossible(range, g, field)).ToList();
+                if (greater.Count == 0)
+                    break;
+                var newList = new List<Range>[rangeList.Length - 1];
+                newList[0] = greater;
+                if (rangeList.Length > 2)
+                    Array.Copy(rangeList, 2, newList, 1, newList.Length - 1);
+                sum += GetCombinations2(newList, field);
+            }
+            return sum;
+        }
+
+        private bool IsPossible(Range start, Range end, string field)
+        {
+            var indexes  = HashRegex().Matches(field).ToList().Select(m => m.Index).ToList();
+            indexes  = indexes.Where(i => i >= start.End.Value && i < end.Start.Value).ToList();
+            return indexes.Count == 0;
         }
 
         private bool IsPossible(int start, int end, string field)
