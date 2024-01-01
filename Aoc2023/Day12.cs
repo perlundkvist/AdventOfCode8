@@ -3,22 +3,33 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static AdventOfCode8.Aoc2023.Day06;
 
 namespace AdventOfCode8.Aoc2023
 {
-    internal class Day12 : DayBase
+    internal partial class Day12 : DayBase
     {
         internal void Run()
         {
 
             var start = DateTime.Now;
 
-            var input = GetInput("2023_12s").ToImmutableList();
-            var records = input.Select(i => new CondictionRecord(i)).ToList();
+            var record = new CondictionRecord("??.#???#?????? 1,2,8");
+            var s = GetSum(record);
 
+            var input = GetInput("2023_12").ToImmutableList();
+
+            var records = input.Select(i => new CondictionRecord(i)).ToList();
             var sum = GetSum(records);
+            Console.WriteLine($"Sum: {sum}. 6601 is too low, 9064 is too high");
+
+            Logg.DoLog = false;
+            records = input.Select(i => new CondictionRecord(i, true)).ToList();
+            sum = GetSum(records);
             Console.WriteLine($"Sum: {sum}");
+
 
             Console.WriteLine($"{DateTime.Now - start}");
         }
@@ -36,48 +47,141 @@ namespace AdventOfCode8.Aoc2023
         private long GetSum(CondictionRecord record)
         {
             var sum = 0L;
-            foreach (var group in record.Groups)
+            var springs = new [] { '#', '?' };
+            var rangeList = new List<Range>[record.Corrects.Count];
+            var idx = 0;
+            var field = record.Field;
+            foreach (var correct in record.Corrects)
             {
-                Logg.WriteLine($"{group}");
-                var splits = GetSplits(group);
+                var ranges = new List<Range>();
+                Logg.WriteLine($"{field}: {correct}");
+                var start = 0;
+                var used = rangeList.Count(l => l != null);
+                if (used > 0)
+                {
+                    var last = rangeList[used - 1];
+                    var len = record.Corrects[used - 1];
+                    start = last.First().Start.Value + len + 1;
+                }
+                while (start <= field.Length)
+                {
+                    start = field.IndexOfAny(springs, start);
+                    //Logg.WriteLine($"Start: {start}");
+                    if (start == -1)
+                        break;
+                    var end = start + correct;
+                    if (end > field.Length)
+                        break;
+                    if (IsPossible(start, end, field))
+                        ranges.Add(new Range(start, end));
+                    start++;
+                }
+                Logg.WriteLine($"Indexes: {string.Join(",", ranges)}");
+                rangeList[idx++] = ranges;
             }
+            var combinations = GetCombinations(rangeList);
+            sum += TestCombinations(combinations, field);
+            Logg.WriteLine($"{combinations.Count} combinations, {sum} valid");
+            Logg.WriteLine();
             return sum;
         }
 
-        private List<List<int>> GetSplits(string group)
+        [GeneratedRegex("#")]
+        private static partial Regex HashRegex();
+
+        private long TestCombinations(List<List<Range>> combinations, string field)
         {
-            var splits = new List<List<int>>();
-            if (group.All(c => c == '#')) 
+            var sum = 0;
+            //var matches  = HashRegex().Matches(field).ToList();
+            var indexes  = HashRegex().Matches(field).ToList().Select(m => m.Index).ToList();
+
+            foreach (var combination in combinations)
             {
-                splits.Add(new List<int> { group.Length });
-                return splits;
+                var valid = true;
+                foreach (var index in indexes)
+                {
+                    if (!combination.Any(r => r.Start.Value <= index && index < r.End.Value))
+                        valid = false;
+                }
+                if (valid)
+                    sum++;
             }
 
-            //var fix = group.AllIndexesOf("#");
-            for (var i = 0; i < group.Length; i++)
-            {
-                //if (fix.Contains(i))
-                //    continue;
-                var first = group[..(i + 1)];
-                var rest = group[(i + 1)..];
-                if (rest.StartsWith("#"))
-                    continue;
-            }
+            return sum;
+        }
 
-            return splits;
+        private List<List<Range>> GetCombinations(List<Range>[] rangeList)
+        {
+            var newCombinations = new List<List<Range>>();
+
+            if (rangeList.Length == 1)
+            {
+                foreach (var range in rangeList[0])
+                {
+                    newCombinations.Add([range]);
+                }
+                return newCombinations;
+            }
+            foreach (var range in rangeList[0]) 
+            {
+                var greater = rangeList[1].Where(r => r.Start.Value > range.End.Value).ToList();
+                if (greater.Count == 0)
+                    break;
+                var newList = new List<Range>[rangeList.Length - 1];
+                newList[0] = greater;
+                if (rangeList.Length > 2)
+                    Array.Copy(rangeList, 2, newList, 1, newList.Length - 1);
+                var combinations = GetCombinations(newList);
+                foreach (var combination in combinations)
+                {
+                    var newCombination = new List<Range> { range };
+                    newCombination.AddRange(combination);
+                    newCombinations.Add(newCombination);
+                }
+            }
+            return newCombinations;
+        }
+
+        private bool IsPossible(int start, int end, string field)
+        {
+            var chunk = field[start..end];
+            if (chunk.IndexOf('.') != -1)
+                return false;
+            if (start > 0 && field[start - 1] == '#')
+                return false;
+            if (end < field.Length && field[end] == '#')
+                return false;
+            return true;
         }
 
         public class CondictionRecord
         {
+            public string Field { get; }
             public List<string> Groups { get; } = [];
             public List<int> Corrects { get; } = [];
 
             public CondictionRecord(string input)
             {
                 var split = input.Split(' ');
+                Field = split[0];
                 Groups = split[0].Split('.', StringSplitOptions.RemoveEmptyEntries).ToList();
                 Corrects = split[1].Split(",").Select(i => int.Parse(i)).ToList();
             }
+
+            public CondictionRecord(string input, bool _)
+            {
+                var split = input.Split(' ');
+                Field = split[0];
+                Groups = split[0].Split('.', StringSplitOptions.RemoveEmptyEntries).ToList();
+                Corrects = split[1].Split(",").Select(i => int.Parse(i)).ToList();
+                for (int i = 0; i < 4; i++)
+                {
+                    Field += "?" + split[0];
+                    Corrects.AddRange(split[1].Split(",").Select(i => int.Parse(i)).ToList());
+                }
+                Groups = Field.Split('.', StringSplitOptions.RemoveEmptyEntries).ToList();
+            }
         }
+
     }
 }
