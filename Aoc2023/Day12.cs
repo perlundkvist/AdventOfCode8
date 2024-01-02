@@ -16,8 +16,8 @@ namespace AdventOfCode8.Aoc2023
 
             var start = DateTime.Now;
 
-            var record = new CondictionRecord("#?.#???#?????? 1,2,8");
-            var s = GetSum(record);
+            //var record = new CondictionRecord("??#?#????#..???????? 5,1,4,2");
+            //var s = GetSum(record);
 
             var input = GetInput("2023_12").ToImmutableList();
 
@@ -37,9 +37,11 @@ namespace AdventOfCode8.Aoc2023
         private long GetSum(List<CondictionRecord> records)
         {
             var sum = 0L;
+            var idx = 1;
             foreach (var record in records)
             {
                 sum += GetSum(record);
+                Console.WriteLine($"{idx++} ({records.Count}) {sum}");
             }
             return sum;
         }
@@ -81,10 +83,10 @@ namespace AdventOfCode8.Aoc2023
             }
             //var combinations = GetCombinations(rangeList);
             //sum += TestCombinations(combinations, field);
-            //sum += TestCombinations(combinations, field);
             //Logg.WriteLine($"{combinations.Count} combinations, {sum} valid");
-            rangeList[0] = rangeList[0].Where(r  => IsPossible(new Range(0, 0), r, field)).ToList();
-            sum += GetCombinations2(rangeList, field);
+            rangeList[0] = rangeList[0].Where(r => IsPossible(new Range(0, 0), r, field)).ToList();
+            rangeList[record.Corrects.Count - 1] = rangeList[record.Corrects.Count - 1].Where(r => IsPossible(r, new Range(999, 999), field)).ToList();
+            sum += GetCombinations2(rangeList, field, 0);
             Logg.WriteLine($"Sum: {sum}");
             Logg.WriteLine();
             return sum;
@@ -108,9 +110,12 @@ namespace AdventOfCode8.Aoc2023
                         valid = false;
                 }
                 if (valid)
+                {
+                    Logg.WriteLine($"{string.Join(",", combination)}");
                     sum++;
+                }
             }
-
+            Logg.WriteLine();
             return sum;
         }
 
@@ -146,24 +151,26 @@ namespace AdventOfCode8.Aoc2023
             return newCombinations;
         }
 
-        private int GetCombinations2(List<Range>[] rangeList, string field)
+        private long GetCombinations2(List<Range>[] rangeList, string field, int depth)
         {
             if (rangeList.Length == 1)
             {
+                Logg.WriteLine($" end: {string.Join(",", rangeList[0])}");
                 return rangeList[0].Count;
             }
-            var sum = 0;
-            foreach (var range in rangeList[0])
+            var sum = 0L;
+            foreach (var range in rangeList[0]) 
             {
                 var greater = rangeList[1].Where(r => r.Start.Value > range.End.Value).ToList();
                 greater = greater.Where(g => IsPossible(range, g, field)).ToList();
                 if (greater.Count == 0)
-                    break;
+                    continue;
+                Logg.Write($"{depth}; {range},");
                 var newList = new List<Range>[rangeList.Length - 1];
                 newList[0] = greater;
                 if (rangeList.Length > 2)
                     Array.Copy(rangeList, 2, newList, 1, newList.Length - 1);
-                sum += GetCombinations2(newList, field);
+                sum += GetCombinations2(newList, field, depth + 1);
             }
             return sum;
         }
