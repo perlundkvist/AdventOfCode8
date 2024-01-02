@@ -16,8 +16,8 @@ namespace AdventOfCode8.Aoc2023
 
             var start = DateTime.Now;
 
-            //var record = new CondictionRecord("??#?#????#..???????? 5,1,4,2");
-            //var s = GetSum(record);
+            var record = new CondictionRecord("?.?????.?????? 1,3,1,3", true);
+            var s = GetSum(record);
 
             var input = GetInput("2023_12").ToImmutableList();
 
@@ -86,6 +86,11 @@ namespace AdventOfCode8.Aoc2023
             //Logg.WriteLine($"{combinations.Count} combinations, {sum} valid");
             rangeList[0] = rangeList[0].Where(r => IsPossible(new Range(0, 0), r, field)).ToList();
             rangeList[record.Corrects.Count - 1] = rangeList[record.Corrects.Count - 1].Where(r => IsPossible(r, new Range(999, 999), field)).ToList();
+            for (int i = 1; i < record.Corrects.Count - 1; i++)
+            {
+                var after = rangeList[i + 1].Last();
+                rangeList[i] = rangeList[i].Where(r => r.End.Value < after.Start.Value).ToList();
+            }
             sum += GetCombinations2(rangeList, field, 0);
             Logg.WriteLine($"Sum: {sum}");
             Logg.WriteLine();
@@ -155,7 +160,7 @@ namespace AdventOfCode8.Aoc2023
         {
             if (rangeList.Length == 1)
             {
-                Logg.WriteLine($" end: {string.Join(",", rangeList[0])}");
+                //Logg.WriteLine($" end: {string.Join(",", rangeList[0])}");
                 return rangeList[0].Count;
             }
             var sum = 0L;
@@ -165,7 +170,7 @@ namespace AdventOfCode8.Aoc2023
                 greater = greater.Where(g => IsPossible(range, g, field)).ToList();
                 if (greater.Count == 0)
                     continue;
-                Logg.Write($"{depth}; {range},");
+                //Logg.Write($"{depth}; {range},");
                 var newList = new List<Range>[rangeList.Length - 1];
                 newList[0] = greater;
                 if (rangeList.Length > 2)
