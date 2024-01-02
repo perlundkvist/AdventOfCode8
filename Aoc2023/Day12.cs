@@ -26,9 +26,9 @@ namespace AdventOfCode8.Aoc2023
             Console.WriteLine($"Sum: {sum}. 7195 is correct");
 
             Logg.DoLog = false;
-            records = input.Select(i => new CondictionRecord(i, true)).ToList();
-            sum = GetSum(records);
-            Console.WriteLine($"Sum: {sum}");
+            //records = input.Select(i => new CondictionRecord(i, true)).ToList();
+            //sum = GetSum(records);
+            //Console.WriteLine($"Sum: {sum}");
 
 
             Console.WriteLine($"{DateTime.Now - start}");
@@ -79,10 +79,9 @@ namespace AdventOfCode8.Aoc2023
                 Logg.WriteLine($"Indexes: {string.Join(",", ranges)}");
                 rangeList[idx++] = ranges;
             }
-            //var combinations = GetCombinations(rangeList);
+            var combinations = GetCombinations(rangeList);
             //sum += TestCombinations(combinations, field);
-            //sum += TestCombinations(combinations, field);
-            //Logg.WriteLine($"{combinations.Count} combinations, {sum} valid");
+            Logg.WriteLine($"{combinations.Count} combinations, {sum} valid");
             rangeList[0] = rangeList[0].Where(r  => IsPossible(new Range(0, 0), r, field)).ToList();
             sum += GetCombinations2(rangeList, field);
             Logg.WriteLine($"Sum: {sum}");
