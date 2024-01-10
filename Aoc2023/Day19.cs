@@ -77,7 +77,7 @@ namespace AdventOfCode8.Aoc2023
                     var ruleParts = ruleDesc.Split(":");
                     var rule = new Rule(ruleParts[0][0], ruleParts[0][1], int.Parse(ruleParts[0][2..]), ruleParts[1]);
                     workFlow.Rules.Add(rule);
-  }
+                }
                 workFlow.LastResult = split[^1];
                 workFlows.Add(workFlow);
             }
