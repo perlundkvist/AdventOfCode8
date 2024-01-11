@@ -12,11 +12,12 @@ namespace AdventOfCode8.Aoc2023
         {
             var start = DateTime.Now;
 
-            Logg.DoLog = false;
+            //Logg.DoLog = false;
 
             var input = GetInput("2023_20s");
 
             var modules = input.Select(Module.Create).ToList();
+            modules.ForEach(m => m.SetInputs(modules));
 
             var sum = PressButton(modules);
             Console.WriteLine($"Total: {sum}");
@@ -38,6 +39,7 @@ namespace AdventOfCode8.Aoc2023
                 {
                     break;
                 }
+                modules.ForEach(Logg.WriteLine);
                 var clone = modules.Select(m => (Module)m.Clone()).ToList();
                 var broadcaster = clone.First(m => m.Name == "broadcaster");
                 broadcaster.HandlePulse(true, "broadcaster");
@@ -56,6 +58,7 @@ namespace AdventOfCode8.Aoc2023
         public abstract class Module(string name)
         {
             public string Name { get; } = name;
+            protected readonly List<string> Inputs = new();
             protected readonly List<string> Receivers = new();
 
             public static Module Create(string config) 
@@ -72,16 +75,33 @@ namespace AdventOfCode8.Aoc2023
                 return module;
             }
 
+            public void SetInputs(List<Module> modules)
+            {
+                Inputs.Clear();
+                Inputs.AddRange(modules.Where(m => m.Receivers.Contains(Name)).Select(m => m.Name).Distinct().ToList());
+            }
+
+            public abstract string GetModuleType();
             public abstract bool GetState();
             public abstract void HandlePulse(bool state, string sender);
             public abstract (int lowPulses, int highPulses) SendPulses(List<Module> modules);
             public abstract object Clone();
+
+            public override string ToString()
+            {
+                return $"{GetModuleType()}{Name}, state: {GetState()}. {string.Join(", ", Inputs)} -> {string.Join(", ", Receivers)}";
+            }
         }
 
         public class FlipFlop(string name) : Module(name)
         {
             private bool _state;
             private bool _sendPulse;
+
+            public override string GetModuleType()
+            {
+                return "%";
+            }
 
             public override bool GetState()
             {
@@ -118,9 +138,14 @@ namespace AdventOfCode8.Aoc2023
         {
             private readonly Dictionary<string, bool> _states = new();
 
+            public override string GetModuleType()
+            {
+                return "&";
+            }
+            
             public override bool GetState()
             {
-                return _states.Values.All(v => v);
+                return _states.Any() && _states.Values.All(v => v);
             }
 
             public override void HandlePulse(bool state, string sender)
@@ -152,6 +177,11 @@ namespace AdventOfCode8.Aoc2023
         public class Broadcaster(string name) : Module(name)
         {
             private bool _state;
+            public override string GetModuleType()
+            {
+                return "";
+            }
+            
             public override bool GetState()
             {
                 return _state;
