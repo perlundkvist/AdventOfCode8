@@ -14,13 +14,19 @@ namespace AdventOfCode8.Aoc2023
 
             //Logg.DoLog = false;
 
-            var input = GetInput("2023_20s");
+            var input = GetInput("2023_20");
 
             var modules = input.Select(Module.Create).ToList();
             modules.ForEach(m => m.SetInputs(modules));
+            modules.OrderBy(m => m.Name).ToList().ForEach(Logg.WriteLine);
 
             var sum = PressButton(modules);
             Console.WriteLine($"Total: {sum}");
+
+            modules = input.Select(Module.Create).ToList();
+            modules.ForEach(m => m.SetInputs(modules));
+            sum = PressButton2(modules);
+            Console.WriteLine($"Button presses: {sum}. 884831197 is too low");
 
             Console.WriteLine();
             Console.WriteLine($"{DateTime.Now - start}");
@@ -33,26 +39,63 @@ namespace AdventOfCode8.Aoc2023
             var highSent = 0;
             while (true)
             {
-                if (timesPressed > 4000)
-                    break;
-                if (timesPressed > 0 && modules.All(m => !m.GetState()))
-                {
-                    break;
-                }
+                //if (timesPressed > 0 && modules.All(m => !m.GetState()))
+                //{
+                //    break;
+                //}
                 modules.ForEach(Logg.WriteLine);
-                var clone = modules.Select(m => (Module)m.Clone()).ToList();
-                var broadcaster = clone.First(m => m.Name == "broadcaster");
-                broadcaster.HandlePulse(true, "broadcaster");
-                foreach (var module in modules)
+                var jobs = new List<(string from, string to, bool state)> { ("button", "broadcaster", false) };
+                lowSent++;
+                while (jobs.Any())
                 {
-                    var (lowPulses, highPulses) = module.SendPulses(clone);
-                    lowSent += lowPulses;
-                    highSent += highPulses;
+                    var job = jobs.First();
+                    jobs.RemoveAt(0);
+                    Logg.WriteLine($"{job.from} -{(job.state ? "high" : "low")}-> {job.to}");
+                    var module = modules.FirstOrDefault(m => m.Name == job.to);
+                    if (module == null)
+                        continue;
+                    var newJobs = module.HandlePulse(job.state, job.from, modules);
+                    //modules.ForEach(Logg.WriteLine);
+                    lowSent += newJobs.Count(j => !j.state);
+                    highSent += newJobs.Count(j => j.state);
+                    jobs.AddRange(newJobs);
                 }
-                modules = clone;
                 timesPressed++;
+                if (timesPressed == 1000)
+                    break;
             }
             return lowSent * highSent;
+        }
+
+        private object PressButton2(List<Module> modules)
+        {
+            var timesPressed = 0L;
+            while (true)
+            {
+                modules.ForEach(Logg.WriteLine);
+                var rxFound = 0;
+                var jobs = new List<(string from, string to, bool state)> { ("button", "broadcaster", false) };
+                while (jobs.Any())
+                {
+                    var job = jobs.First();
+                    jobs.RemoveAt(0);
+                    Logg.WriteLine($"{job.from} -{(job.state ? "high" : "low")}-> {job.to}");
+                    var module = modules.FirstOrDefault(m => m.Name == job.to);
+                    if (module == null)
+                        continue;
+                    var newJobs = module.HandlePulse(job.state, job.from, modules);
+                    if (newJobs.Any(j => j is { to: "rx", state: false }))
+                        rxFound++;
+                    //modules.ForEach(Logg.WriteLine);
+                    jobs.AddRange(newJobs);
+                }
+                timesPressed++;
+                if (timesPressed % 1000000 == 0)
+                    Console.WriteLine($"{timesPressed}");
+                if (rxFound == 1)
+                    break;
+            }
+            return timesPressed;
         }
 
         public abstract class Module(string name)
@@ -75,7 +118,7 @@ namespace AdventOfCode8.Aoc2023
                 return module;
             }
 
-            public void SetInputs(List<Module> modules)
+            public virtual void SetInputs(List<Module> modules)
             {
                 Inputs.Clear();
                 Inputs.AddRange(modules.Where(m => m.Receivers.Contains(Name)).Select(m => m.Name).Distinct().ToList());
@@ -83,8 +126,7 @@ namespace AdventOfCode8.Aoc2023
 
             public abstract string GetModuleType();
             public abstract bool GetState();
-            public abstract void HandlePulse(bool state, string sender);
-            public abstract (int lowPulses, int highPulses) SendPulses(List<Module> modules);
+            public abstract List<(string from, string to, bool state)> HandlePulse(bool pulse, string sender, List<Module> modules);
             public abstract object Clone();
 
             public override string ToString()
@@ -96,7 +138,6 @@ namespace AdventOfCode8.Aoc2023
         public class FlipFlop(string name) : Module(name)
         {
             private bool _state;
-            private bool _sendPulse;
 
             public override string GetModuleType()
             {
@@ -108,25 +149,14 @@ namespace AdventOfCode8.Aoc2023
                 return _state;
             }
 
-            public override void HandlePulse(bool state, string sender)
+            public override List<(string from, string to, bool state)> HandlePulse(bool pulse, string sender,
+                List<Module> modules)
             {
-                _sendPulse = !state;
-                if (state)
-                    return;
+                if (pulse)
+                    return new List<(string from, string to, bool state)>();
                 _state = !_state;
-            }
-
-            public override (int lowPulses, int highPulses) SendPulses(List<Module> modules)
-            {
-                if (!_sendPulse)
-                    return (0, 0);
-                var lowPulses = !_state ? Receivers.Count : 0;
-                var highCount = _state ? Receivers.Count : 0;
-                foreach (var receiver in Receivers)
-                {
-                    modules.First(m => m.Name == receiver).HandlePulse(_state, name);
-                }
-                return (lowPulses, highCount);
+                var jobs = Receivers.Select(r => (Name, r, _state)).ToList();
+                return jobs;
             }
             public override object Clone()
             {
@@ -148,23 +178,26 @@ namespace AdventOfCode8.Aoc2023
                 return _states.Any() && _states.Values.All(v => v);
             }
 
-            public override void HandlePulse(bool state, string sender)
+            public override List<(string from, string to, bool state)> HandlePulse(bool pulse, string sender,
+                List<Module> modules)
             {
-                if (!_states.TryAdd(sender, state))
-                    _states[sender] = state;
+                if (!_states.TryAdd(sender, pulse))
+                    _states[sender] = pulse;
+                var state = _states.Values.Any(v => !v);
+                var jobs = Receivers.Select(r => (Name, r, state)).ToList();
+                return jobs;
             }
 
-            public override (int lowPulses, int highPulses) SendPulses(List<Module> modules)
+            public override void SetInputs(List<Module> modules)
             {
-                var state = _states.Values.Any(v => !v);
-                var lowPulses = !state ? Receivers.Count : 0;
-                var highCount = state ? Receivers.Count : 0;
-                foreach (var receiver in Receivers)
+                base.SetInputs(modules);
+                _states.Clear();
+                foreach (var module in Inputs)
                 {
-                    modules.First(m => m.Name == receiver).HandlePulse(state, name);
+                    _states.TryAdd(module, false);
                 }
-                return (lowPulses, highCount);
-            }
+            }            
+
             public override object Clone()
             {
                 var conjunction = new Conjunction(Name);
@@ -187,21 +220,14 @@ namespace AdventOfCode8.Aoc2023
                 return _state;
             }
 
-            public override void HandlePulse(bool state, string sender)
+            public override List<(string from, string to, bool state)> HandlePulse(bool pulse, string sender,
+                List<Module> modules)
             {
-                _state = state;
+                _state = pulse;
+                var jobs = Receivers.Select(r => (Name, r, pulse)).ToList();
+                return jobs;
             }
 
-            public override (int lowPulses, int highPulses) SendPulses(List<Module> modules)
-            {
-                foreach (var receiver in Receivers)
-                {
-                    modules.First(m => m.Name == receiver).HandlePulse(_state, name);
-                }
-                var lowPulses = !_state ? Receivers.Count : 0;
-                var highCount = _state ? Receivers.Count : 0;
-                return (lowPulses, highCount);
-            }
             public override object Clone()
             {
                 return new Broadcaster(Name) {_state = _state};
