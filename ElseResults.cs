@@ -115,18 +115,18 @@ namespace AdventOfCode8
             }
         }
 
-        public static string GetTopList()
+        public static string GetTopList(string year)
         {
             try
             {
-                var cookieValue = "53616c7465645f5f18af7d51b4dc80ac0c22d2311ab298fc349f11d90bf592a3f6622eb9f9ca97898e90db864627b285f327f2e284c62182a7da7cd7f71e7cee";
+                var cookieValue = File.ReadAllText(@"C:\Projekt\AdventOfCode8\Input\Cookie.txt");
                 var cookieContainer = new CookieContainer();
                 var cookie = new Cookie("session", cookieValue) { Domain = ".adventofcode.com" };
                 cookieContainer.Add(cookie);
                 using var handler = new HttpClientHandler() { CookieContainer = cookieContainer };
                 using var client = new HttpClient(handler);
-                var response = client.GetAsync("https://adventofcode.com/2023/leaderboard/private/view/1013538.json").Result;
-                if (response != null && response.IsSuccessStatusCode)
+                var response = client.GetAsync($"https://adventofcode.com/{year}/leaderboard/private/view/1013538.json").Result;
+                 if (response != null && response.IsSuccessStatusCode)
                     return response.Content.ReadAsStringAsync().Result;
                 Console.WriteLine(response?.ToString() ?? "Null response");
                 return "";

@@ -4,7 +4,7 @@
 if (args.Any())
 {
     //ElseResults.Create(@"C:\Projekt\AdventOfCode3\Input\Else.json");
-    var json = args.First() == "Web" ? ElseResults.GetTopList() : File.ReadAllText(args.First());
+    var json = args.First() == "Web" ? ElseResults.GetTopList(args[1]) : File.ReadAllText(args.First());
     if (json != "")
         ElseResults.Create(json);
 
@@ -13,4 +13,4 @@ if (args.Any())
     return;
 }
 
-new AdventOfCode8.Aoc2023.Day20().Run();
+new AdventOfCode8.Aoc2024.Day01().Run();

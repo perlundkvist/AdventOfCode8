@@ -9,7 +9,7 @@
     },
     "From web": {
       "commandName": "Project",
-      "commandLineArgs": "Web"
+      "commandLineArgs": "Web 2024"
     }
   }
 }
