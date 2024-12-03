@@ -9,7 +9,7 @@ namespace AdventOfCode8
 {
     class ElseResults
     {
-        public static void Create(string json)
+        public static void Create(string json, bool showTimes)
         {
             var document = JsonDocument.Parse(json);
             var codeEvent = document.RootElement.GetProperty("event").GetString();
@@ -61,7 +61,7 @@ namespace AdventOfCode8
 
             var playerCount = players.Count;
 
-            for (int day = 1; day <= 25; day++)
+            for (var day = 1; day <= 25; day++)
             {
                 //Console.Write($"Dag {day}.1;Dag {day}.2;");
                 if (!players.Any(p => p.DayScores.Any(d => d.Day == day)))
@@ -86,7 +86,7 @@ namespace AdventOfCode8
                 Console.Write($"{player.Name};{player.Points};{player.DayScores.Count(d => d.Points1 == playerCount) + player.DayScores.Count(d => d.Points2 == playerCount)};");
                 Console.Write($"{player.DayScores.Count(d => d.Points1 == playerCount - 1) + player.DayScores.Count(d => d.Points2 == playerCount - 1)};");
                 Console.Write($"{player.DayScores.Count(d => d.Points1 == playerCount - 2) + player.DayScores.Count(d => d.Points2 == playerCount - 2)};");
-                for (int day = 1; day <= 25; day++)
+                for (var day = 1; day <= 25; day++)
                 {
                     var dayScore = player.DayScores.FirstOrDefault(d => d.Day == day);
                     Console.Write($"{dayScore?.Points1};{dayScore?.Points2};");
@@ -97,6 +97,36 @@ namespace AdventOfCode8
             Console.WriteLine();
             Console.WriteLine($"Uppdaterad");
             Console.WriteLine($"{DateTime.Now:g}");
+
+            if (!showTimes)
+                return;
+
+            Console.WriteLine();
+            Console.WriteLine();
+
+            for (var day = 1; day <= 25; day++)
+            {
+                //Console.Write($"Dag {day}.1;Dag {day}.2;");
+                if (!players.Any(p => p.DayScores.Any(d => d.Day == day)))
+                    continue;
+
+                foreach (var player in players.OrderBy(p => p.DayScores.FirstOrDefault(d => d.Day == day)?.Completed1))
+                {
+                    var dayScore = player.DayScores.FirstOrDefault(d => d.Day == day);
+                    if (dayScore == null)
+                        continue;
+                    Console.WriteLine($"{player.Name} finished part 1 on day {dayScore.Day} {dayScore.CompletedDate1}");
+                }
+                Console.WriteLine();
+                foreach (var player in players.OrderBy(p => p.DayScores.FirstOrDefault(d => d.Day == day)?.Completed2))
+                {
+                    var dayScore = player.DayScores.FirstOrDefault(d => d.Day == day);
+                    if (dayScore?.Completed2 != null)
+                        Console.WriteLine($"{player.Name} finished part 2 on day {dayScore.Day} {dayScore.CompletedDate2}");
+                }
+                Console.WriteLine();
+            }
+
         }
 
         internal record Player(string Id, string Name, int Points)
@@ -137,6 +167,11 @@ namespace AdventOfCode8
                 return ""; 
             }
 
+        }
+
+        public static string GetTimes(string s)
+        {
+            throw new NotImplementedException();
         }
     }
 }
