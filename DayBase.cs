@@ -44,6 +44,31 @@ namespace AdventOfCode8
             return sOutput.ToString();
         }
 
+        public static void Print(char[,] array)
+        {
+            for (var i = 0; i < array.GetLength(0); i++)
+            {
+                for (var j = 0; j < array.GetLength(1); j++)
+                {
+                    Console.Write(array[i, j]);
+                }
+                Console.WriteLine();
+            }
+        }
+
+        public static T[,] Rotate<T>(T[,] array)
+        {
+            var result = new T[array.GetLength(1), array.GetLength(0)];
+            for (var i = 0; i < array.GetLength(0); i++)
+            {
+                for (var j = 0; j < array.GetLength(1); j++)
+                {
+                    result[j, array.GetLength(0) - i - 1] = array[i, j];
+                }
+            }
+            return result;
+        }
+
         public class Logger
         {
             public bool DoLog { get; set; } = true;
@@ -118,6 +143,19 @@ namespace AdventOfCode8
             return GetPermutations(list, length - 1)
                 .SelectMany(t => list.Where(e => !t.Contains(e)),
                     (t1, t2) => t1.Concat(new T[] { t2 }));
+        }
+
+        public static char[,] ToCharArray(this List<string> input)
+        {
+            var result = new char[input.Count, input[0].Length];
+            for (var i = 0; i < input.Count; i++)
+            {
+                for (var j = 0; j < input[0].Length; j++)
+                {
+                    result[i, j] = input[i][j];
+                }
+            }
+            return result;
         }
 
     }

@@ -11,9 +11,14 @@ internal class Day04 : DayBase
 {
     internal void Run()
     {
-        var input = GetInput("2024_04");
+        var input = GetInput("2024_04s");
 
-        //input = ["ASAMXS"];
+        //input = ["ABCD", "EFGH"];
+        //var array = input.ToCharArray();
+        //Print(array);
+        //array = Rotate(array);
+        //array = Rotate(array);
+        //Print(array);
 
         var sum = 0;
         var y = 0;
