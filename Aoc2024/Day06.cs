@@ -32,17 +32,18 @@ internal class Day06 : DayBase
 
         var newObstructions = 0;
         var count = 0;
+        var start = DateTime.Now;
         foreach (var obstacle in visited)
         {
-            Console.WriteLine($"{count++}");
+            Console.WriteLine($"{count++} ({visited.Count})");
             obstacles.Add(obstacle); 
-            //if (!Move2(obstacles, Direction.Up, current, input.Count, input[0].Length))
+            //if (!Move2(obstacles, Direction.Up, current, input.Count, input[0].Length)) // 20 minutes
             //    newObstructions++;
-            if (!Move3(obstacles, Direction.Up, current, input.Count, input[0].Length))
+            if (!Move3(obstacles, Direction.Up, current, input.Count, input[0].Length)) // 47 seconds!
                 newObstructions++;
             obstacles.Remove(obstacle);
         }
-
+        Console.WriteLine($"{DateTime.Now-start}");
         Console.WriteLine($"New possible: {newObstructions}");
 
     }
