@@ -15,9 +15,17 @@ internal class Day07 : DayBase
         foreach (var line in input)
         {
             Console.WriteLine(line);
-            var parts = line.Split(' ', ':');
-            var result = long.Parse(parts[0]);
-            var numbers = parts[2..].Select(long.Parse).ToList();
+
+            // With split
+            //var parts = line.Split(' ', ':');
+            //var result = long.Parse(parts[0]);
+            //var numbers = parts[2..].Select(long.Parse).ToList();
+
+            // With regex
+            var matches = Regex.Matches(line, @"(\d+)").Select(m => m.Value).ToList();
+            var result = long.Parse(matches[0]);
+            var numbers = matches[1..].Select(long.Parse).ToList();
+
             if (Correct(result, numbers))
                 correct += result;
             if (Correct2(result, numbers))
