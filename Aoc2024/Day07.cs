@@ -22,7 +22,7 @@ internal class Day07 : DayBase
             //var numbers = parts[2..].Select(long.Parse).ToList();
 
             // With regex
-            var matches = Regex.Matches(line, @"(\d+)").Select(m => m.Value).ToList();
+            var matches = Regex.Matches(line, @"\d+").Select(m => m.Value).ToList();
             var result = long.Parse(matches[0]);
             var numbers = matches[1..].Select(long.Parse).ToList();
 
