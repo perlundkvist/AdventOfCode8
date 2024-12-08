@@ -10,6 +10,7 @@ internal class Day08 : DayBase
 
         var antinodes = new List<Position>();
         var antinodes2 = new List<Position>();
+        var antinodes3 = new List<Position>();
         var antennas = new List<Position<char>>();
 
         for (var line = 0; line < input.Count; line++)
@@ -24,19 +25,27 @@ internal class Day08 : DayBase
         //Print(antennas, antinodes, input.Count, input[0].Length);
 
 
-        var types = antennas.Select(a => a.Value).Distinct().ToList();
-        foreach (var type in types)
+        //var types = antennas.Select(a => a.Value).Distinct().ToList();
+        //foreach (var type in types)
+        //{
+        //    antinodes.AddRange(GetAntinodes(antennas.Where(a => a.Value == type).ToList(), input.Count, input[0].Length));
+        //    antinodes2.AddRange(GetAntinodes2(antennas.Where(a => a.Value == type).ToList(), input.Count, input[0].Length));
+        //    antinodes3 = antinodes3.Union(GetAntinodes2(antennas.Where(a => a.Value == type).ToList(), input.Count, input[0].Length)).ToList(); // Test with union
+        //}
+
+        var antennaGroups = antennas.GroupBy(a => a.Value).ToList();
+        foreach (var group in antennaGroups)
         {
-            antinodes.AddRange(GetAntinodes(antennas.Where(a => a.Value == type).ToList(), input.Count, input[0].Length));
-            antinodes2.AddRange(GetAntinodes2(antennas.Where(a => a.Value == type).ToList(), input.Count, input[0].Length));
+            antinodes.AddRange(GetAntinodes(group.ToList(), input.Count, input[0].Length));
+            antinodes2.AddRange(GetAntinodes2(group.ToList(), input.Count, input[0].Length));
+            antinodes3 = antinodes3.Union(GetAntinodes2(group.ToList(), input.Count, input[0].Length)).ToList(); // Test with union
         }
 
         Print(antennas, antinodes2, input.Count, input[0].Length);
 
         Console.WriteLine($"{antinodes.Distinct().Count()}");
         Console.WriteLine($"{antinodes2.Distinct().Count()}");
-
-
+        Console.WriteLine($"{antinodes3.Count} {antinodes2.Count}");
     }
 
     private void Print(List<Position<char>> antennas, List<Position> antinodes, int lines, int cols)
