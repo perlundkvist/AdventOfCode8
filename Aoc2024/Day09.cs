@@ -6,7 +6,7 @@ internal class Day09 : DayBase
 {
     internal void Run()
     {
-        var input = GetInput("2024_09s").First();
+        var input = GetInput("2024_09").First();
         var numbers = input.Select(n =>  int.Parse(n.ToString())).ToList();
         var addFile = true;
         var blocks = new List<int>();
@@ -17,8 +17,9 @@ internal class Day09 : DayBase
             for (var i = 0; i < number; i++)
             {
                 blocks.Add(addFile ? id : -1);
-            } 
-            files.Add(new KeyValuePair<int, int>(addFile ? id : -1, number));
+            }
+            if (number > 0)
+                files.Add(new KeyValuePair<int, int>(addFile ? id : -1, number));
 
             if (addFile)
                 id++;
@@ -47,7 +48,7 @@ internal class Day09 : DayBase
         Console.WriteLine($"{GetCheckSum(blocks)}");
         Console.WriteLine();
 
-        MoveLast(files);
+        files = MoveLast(files);
 
         if (input.Length < 100)
         {
@@ -65,15 +66,15 @@ internal class Day09 : DayBase
 
     }
 
-    private void MoveLast(List<KeyValuePair<int, int>> files)
+    private List<KeyValuePair<int, int>> MoveLast(List<KeyValuePair<int, int>> files)
     {
         var reversed = files.ToList();
         reversed.Reverse();
-        Console.WriteLine(string.Join(' ', files));
         foreach (var file in reversed)
         {
             if (file.Key == -1)
                 continue;
+            Console.WriteLine($"Checking {file}");
             var moveFrom = files.LastIndexOf(file);
             var fileTo = files.FirstOrDefault(f => f.Key == -1 && f.Value >= file.Value);
             if (fileTo.Key == 0)
@@ -81,17 +82,27 @@ internal class Day09 : DayBase
             var moveTo = files.IndexOf(fileTo);
             if (moveFrom < moveTo)
                 continue;
+            if (files.Count < 30)
+            {
+                Console.WriteLine($"Moving {file}");
+                Console.WriteLine($"Before: {string.Join(' ', files)}");
+            }
+
             files[moveFrom] = new KeyValuePair<int, int>(-1, file.Value);
             files[moveTo] = file;
             if (fileTo.Value > file.Value)
-                files.Insert(moveFrom + 1, new KeyValuePair<int, int>(-1, fileTo.Value - file.Value));
-            //Console.WriteLine(string.Join(' ', files));
-
-            //files = CompressEmpty(files);
-
+                files.Insert(moveTo + 1, new KeyValuePair<int, int>(-1, fileTo.Value - file.Value));
             if (files.Count < 30)
+                Console.WriteLine($"After : {string.Join(' ', files)}");
+
+            files = CompressEmpty(files);
+            if (files.Count < 30)
+            {
+                Console.WriteLine($"After2: {string.Join(' ', files)}");
                 Print(files);
+            }
         }
+        return files;
     }
 
     private List<KeyValuePair<int, int>> CompressEmpty(List<KeyValuePair<int, int>> files)
@@ -99,14 +110,16 @@ internal class Day09 : DayBase
         var compressed = new List<KeyValuePair<int, int>>();
         for (var i = 0; i < files.Count; i++)
         {
-            if (i < files.Count -1 && files[i].Key == -1 && files[i + 1].Key == -1)
+            if (i < files.Count - 1 && files[i].Key == -1 && files[i + 1].Key == -1)
             {
                 compressed.Add(new KeyValuePair<int, int>(-1, files[i].Value + files[i + 1].Value));
                 i++;
                 continue;
             }
+
             compressed.Add(files[i]);
         }
+
         return compressed;
     }
 
