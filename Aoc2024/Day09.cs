@@ -1,4 +1,6 @@
-﻿namespace AdventOfCode8.Aoc2024;
+﻿using static System.Reflection.Metadata.BlobBuilder;
+
+namespace AdventOfCode8.Aoc2024;
 
 internal class Day09 : DayBase
 {
@@ -6,7 +8,7 @@ internal class Day09 : DayBase
     {
         var input = GetInput("2024_09s").First();
         var numbers = input.Select(n =>  int.Parse(n.ToString())).ToList();
-        var file = true;
+        var addFile = true;
         var blocks = new List<int>();
         var files = new List<KeyValuePair<int, int>>();
         var id = 0;
@@ -14,13 +16,13 @@ internal class Day09 : DayBase
         {
             for (var i = 0; i < number; i++)
             {
-                blocks.Add(file ? id : -1);
+                blocks.Add(addFile ? id : -1);
             } 
-            files.Add(new KeyValuePair<int, int>(file ? id : -1, number));
+            files.Add(new KeyValuePair<int, int>(addFile ? id : -1, number));
 
-            if (file)
+            if (addFile)
                 id++;
-            file = !file;
+            addFile = !addFile;
         }
 
         if (input.Length < 100)
@@ -43,27 +45,69 @@ internal class Day09 : DayBase
             Print(blocks);
 
         Console.WriteLine($"{GetCheckSum(blocks)}");
+        Console.WriteLine();
 
-        var reverse = files.ToList();
-        reverse.Reverse();
-
-        foreach (var move in reverse)
-        {
-            var moveFrom = files.IndexOf(move);
-            var empty = files.FirstOrDefault(f => f.Key == -1 && f.Value >= move.Value);
-            if (empty.Key == 0)
-                continue;
-            var moveTo = files.IndexOf(empty);
-            if (moveFrom < moveTo)
-            {
-                files[moveTo] = move;
-                files[moveFrom] = empty;
-            }
-        }
+        MoveLast(files);
 
         if (input.Length < 100)
-            Print(files);   
+        {
+            Console.WriteLine();
+            Console.WriteLine("00992111777.44.333....5555.6666.....8888..");
+            Print(files);
+        }
 
+        blocks = GetBlocks(files);
+        if (input.Length < 100)
+            Print(blocks);
+
+        Console.WriteLine();
+        Console.WriteLine($"{GetCheckSum(blocks)} 6327183633722 too high");
+
+    }
+
+    private void MoveLast(List<KeyValuePair<int, int>> files)
+    {
+        var reversed = files.ToList();
+        reversed.Reverse();
+        Console.WriteLine(string.Join(' ', files));
+        foreach (var file in reversed)
+        {
+            if (file.Key == -1)
+                continue;
+            var moveFrom = files.LastIndexOf(file);
+            var fileTo = files.FirstOrDefault(f => f.Key == -1 && f.Value >= file.Value);
+            if (fileTo.Key == 0)
+                continue;
+            var moveTo = files.IndexOf(fileTo);
+            if (moveFrom < moveTo)
+                continue;
+            files[moveFrom] = new KeyValuePair<int, int>(-1, file.Value);
+            files[moveTo] = file;
+            if (fileTo.Value > file.Value)
+                files.Insert(moveFrom + 1, new KeyValuePair<int, int>(-1, fileTo.Value - file.Value));
+            //Console.WriteLine(string.Join(' ', files));
+
+            //files = CompressEmpty(files);
+
+            if (files.Count < 30)
+                Print(files);
+        }
+    }
+
+    private List<KeyValuePair<int, int>> CompressEmpty(List<KeyValuePair<int, int>> files)
+    {
+        var compressed = new List<KeyValuePair<int, int>>();
+        for (var i = 0; i < files.Count; i++)
+        {
+            if (i < files.Count -1 && files[i].Key == -1 && files[i + 1].Key == -1)
+            {
+                compressed.Add(new KeyValuePair<int, int>(-1, files[i].Value + files[i + 1].Value));
+                i++;
+                continue;
+            }
+            compressed.Add(files[i]);
+        }
+        return compressed;
     }
 
     private long GetCheckSum(List<int> blocks)
@@ -76,6 +120,19 @@ internal class Day09 : DayBase
             checksum += blocks[i] * i;
         }
         return checksum;
+    }
+
+    private List<int> GetBlocks(List<KeyValuePair<int, int>> files)
+    {
+        var blocks = new List<int>();
+        foreach (var file in files)
+        {
+            for (var i = 0; i < file.Value; i++)
+            {
+                blocks.Add(file.Key);
+            }
+        }
+        return blocks;
     }
 
     private void Print(List<int> blocks)
