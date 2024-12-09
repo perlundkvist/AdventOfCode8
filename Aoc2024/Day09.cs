@@ -1,6 +1,4 @@
-﻿using static System.Reflection.Metadata.BlobBuilder;
-
-namespace AdventOfCode8.Aoc2024;
+﻿namespace AdventOfCode8.Aoc2024;
 
 internal class Day09 : DayBase
 {
