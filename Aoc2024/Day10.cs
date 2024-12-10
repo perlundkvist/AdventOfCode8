@@ -30,16 +30,16 @@ internal class Day10 : DayBase
         Console.WriteLine($"{score}");
 
         score = 0;
-        var s2 = 0;
+        var score2 = 0;
         foreach (var position in map.Where(p => p.Value == 0))
         {
             var visited = GetHeads2(position, map);
-            score += visited.Count;
-            s2 += visited.Distinct().ToList().Count;
+            score += visited.Distinct().ToList().Count;
+            score2 += visited.Count;
         }
 
-        Console.WriteLine($"{score}");
-        Console.WriteLine($"Distinct {s2}");
+        Console.WriteLine($"Score 1: {score}");
+        Console.WriteLine($"Score 2: {score2}");
     }
 
     private HashSet<Position> GetHeads(Position<int> position, List<Position<int>> map)
@@ -53,21 +53,20 @@ internal class Day10 : DayBase
         return visited;
     }
 
-    private void Move(Position<int> from, Position? position, List<Position<int>> map, HashSet<Position> visited)
+    private void Move(Position<int> from, Position<int>? to, List<Position<int>> map, HashSet<Position> visited)
     {
-        if (position == null)
+        if (to == null)
             return;
-        var to = map.First(p => p == position);
         var value = to.Value;
         if (value - from.Value != 1)
             return;
         if (value == 9)
         {
-            visited.Add(position);
+            visited.Add(to);
             return;
         }
 
-        var (up, down, left, right) = position.GetSurrounding(map);
+        var (up, down, left, right) = to.GetSurrounding(map);
         Move(to, up, map, visited);
         Move(to, down, map, visited);
         Move(to, left, map, visited);
@@ -85,21 +84,20 @@ internal class Day10 : DayBase
         return visited;
     }
 
-    private void Move(Position<int> from, Position? position, List<Position<int>> map, List<Position> visited)
+    private void Move(Position<int> from, Position<int>? to, List<Position<int>> map, List<Position> visited)
     {
-        if (position == null)
+        if (to == null)
             return;
-        var to = map.First(p => p == position);
         var value = to.Value;
         if (value - from.Value != 1)
             return;
         if (value == 9)
         {
-            visited.Add(position);
+            visited.Add(to);
             return;
         }
 
-        var (up, down, left, right) = position.GetSurrounding(map);
+        var (up, down, left, right) = to.GetSurrounding(map);
         Move(to, up, map, visited);
         Move(to, down, map, visited);
         Move(to, left, map, visited);
