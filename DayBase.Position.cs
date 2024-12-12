@@ -76,6 +76,34 @@ public partial class DayBase
                 Col < maxCol -1 ? new(Line, Col + 1) : null);
         }
 
+        public static void Print(List<Position> map, char print)
+        {
+            for (var line = map.Min(m => m.Line); line <= map.Max(m => m.Line); line++)
+            {
+                for (var col = map.Min(m => m.Col); col <= map.Max(m => m.Col); col++)
+                {
+                    var pos = map.FirstOrDefault(p => p.Line == line && p.Col == col);
+                    Console.Write(pos == null ? ' ' : print);
+                }
+                Console.WriteLine();
+            }
+            Console.WriteLine();
+        }
+
+        public static void Print<T>(List<Position<T>> map)
+        {
+            for (var line = map.Min(m => m.Line); line <= map.Max(m => m.Line); line++)
+            {
+                for (var col = map.Min(m => m.Col); col <= map.Max(m => m.Col); col++)
+                {
+                    var pos = map.FirstOrDefault(p => p.Line == line && p.Col == col);
+                    Console.Write(pos == null ? " " : pos.Value?.ToString());
+                }
+                Console.WriteLine();
+            }
+            Console.WriteLine();
+        }
+
     }
 
     public record PositionString(int Line, int Col, string Value) : Position(Line, Col)
