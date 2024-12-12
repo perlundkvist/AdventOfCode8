@@ -49,6 +49,15 @@ public partial class DayBase
                 map.FirstOrDefault(p => p.Line == Line && p.Col == Col + 1)); // right
         }
 
+        public (Position<T>? up, Position<T>? down, Position<T>? left, Position<T>? right) GetSurrounding<T>(IEnumerable<Position<T>> map, object value)
+        {
+            return new(
+                map.FirstOrDefault(p => p.Line == Line - 1 && p.Col == Col && p.Value != null && p.Value.Equals(value)), // up
+                map.FirstOrDefault(p => p.Line == Line + 1 && p.Col == Col && p.Value != null && p.Value.Equals(value)), // down
+                map.FirstOrDefault(p => p.Line == Line && p.Col == Col - 1 && p.Value != null && p.Value.Equals(value)), // left
+                map.FirstOrDefault(p => p.Line == Line && p.Col == Col + 1 && p.Value != null && p.Value.Equals(value))); // right
+        }
+
         /// <summary>
         /// Returns the 4 positions surrounding the current position in a 45 degree angle.
         /// It's not possible to get the 8 surrounding positions due to a limit of max 7 items in a ValueTuple.

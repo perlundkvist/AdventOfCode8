@@ -60,32 +60,32 @@ internal class Day12 : DayBase
 
     private int GetCost2(List<Position<char>> region)
     {
-        Position.Print(region);
+        //Position.Print(region);
         var cost = 0;
-        var fences = new List<Position>();
+        var fences = new List<Position<char>>();
         foreach (var position in region)
         {
             var around = position.GetSurrounding(region);
             if (around.up == null)
             {
-                fences.Add(new Position(position.Line-1, position.Col));
+                fences.Add(new Position<char>(position.Line-1, position.Col, '-'));
             }
             if (around.down == null)
             {
-                fences.Add(new Position(position.Line + 1, position.Col));
+                fences.Add(new Position<char>(position.Line + 1, position.Col, '-'));
             }
             if (around.left == null)
             {
-                fences.Add(new Position(position.Line, position.Col - 1));
+                fences.Add(new Position<char>(position.Line, position.Col - 1, '|'));
             }
             if (around.right == null)
             {
-                fences.Add(new Position(position.Line, position.Col + 1));
+                fences.Add(new Position<char>(position.Line, position.Col + 1, '|'));
             }
         }
         fences = fences.Distinct().ToList();
 
-        Position.Print(fences, '*');
+        //Position.Print(fences, '*');
 
         while (fences.Count > 0)
         {
@@ -100,9 +100,9 @@ internal class Day12 : DayBase
         return cost;
     }
 
-    private List<Position> RemoveRight(Position position, List<Position> fences)
+    private List<Position<char>> RemoveRight(Position<char> position, List<Position<char>> fences)
     {
-        var right = position.GetSurrounding(fences).right;
+        var right = position.GetSurrounding(fences, position.Value).right;
         if (right != null)
         {
             fences.Remove(right);
@@ -111,9 +111,9 @@ internal class Day12 : DayBase
         return fences;
     }
 
-    private List<Position> RemoveLeft(Position position, List<Position> fences)
+    private List<Position<char>> RemoveLeft(Position<char> position, List<Position<char>> fences)
     {
-        var left = position.GetSurrounding(fences).left;
+        var left = position.GetSurrounding(fences, position.Value).left;
         if (left != null)
         {
             fences.Remove(left);
@@ -122,7 +122,7 @@ internal class Day12 : DayBase
         return fences;
     }
 
-    private List<Position> RemoveBelow(Position position, List<Position> fences)
+    private List<Position<char>> RemoveBelow(Position<char> position, List<Position<char>> fences)
     {
         var down = position.GetSurrounding(fences).down;
         if (down != null)
@@ -133,7 +133,7 @@ internal class Day12 : DayBase
         return fences;
     }
 
-    private List<Position> RemoveAbove(Position position, List<Position> fences)
+    private List<Position<char>> RemoveAbove(Position<char> position, List<Position<char>> fences)
     {
         var up = position.GetSurrounding(fences).up;
         if (up != null)
