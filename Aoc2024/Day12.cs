@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions.Generated;
 
 namespace AdventOfCode8.Aoc2024;
 
@@ -7,7 +8,7 @@ internal class Day12 : DayBase
 
     internal void Run()
     {
-        var input = GetInput("2024_12s");
+        var input = GetInput("2024_12");
 
         List<Position<char>> map = new();
         for (var line = 0; line < input.Count; line++)
@@ -60,44 +61,57 @@ internal class Day12 : DayBase
 
     private int GetCost2(List<Position<char>> region)
     {
-        //Position.Print(region);
+        //if (region.First().Value == 'A')
+        //    Position.Print(region);
         var cost = 0;
-        var fences = new List<Position<char>>();
         foreach (var position in region)
         {
-            var around = position.GetSurrounding(region);
-            if (around.up == null)
-            {
-                fences.Add(new Position<char>(position.Line-1, position.Col, '-'));
-            }
-            if (around.down == null)
-            {
-                fences.Add(new Position<char>(position.Line + 1, position.Col, '-'));
-            }
-            if (around.left == null)
-            {
-                fences.Add(new Position<char>(position.Line, position.Col - 1, '|'));
-            }
-            if (around.right == null)
-            {
-                fences.Add(new Position<char>(position.Line, position.Col + 1, '|'));
-            }
-        }
-        fences = fences.Distinct().ToList();
-
-        //Position.Print(fences, '*');
-
-        while (fences.Count > 0)
-        {
-            cost++;
-            var position = fences[0];
-            fences.Remove(position);
-            fences = RemoveAbove(position, fences);
-            fences = RemoveBelow(position, fences);
-            fences = RemoveLeft(position, fences);
-            fences = RemoveRight(position, fences);
+            if (IsCornerUpLeft(position, region))
+                cost++;
+            if (IsCornerUpRight(position, region))
+                cost++;
+            if (IsCornerDownLeft(position, region))
+                cost++;
+            if (IsCornerDownRight(position, region))
+                cost++;
         }
         return cost;
+    }
+
+    private bool IsCornerUpLeft(Position<char> position, List<Position<char>> region)
+    {
+        var around = position.GetSurrounding(region);
+        if ((around.up == null && around.left == null))
+            return true;
+        var around45 = position.GetSurrounding45(region);
+        return around45.upLeft == null && around.up != null && around.left != null;
+    }
+
+    private bool IsCornerUpRight(Position<char> position, List<Position<char>> region)
+    {
+        var around = position.GetSurrounding(region);
+        if (around.up == null && around.right == null)
+            return true;
+        var around45 = position.GetSurrounding45(region);
+        return around45.upRight == null && around.up != null && around.right != null;
+    }
+
+    private bool IsCornerDownLeft(Position<char> position, List<Position<char>> region)
+    {
+        var around = position.GetSurrounding(region);
+        if (around.down == null && around.left == null)
+            return true;
+        var around45 = position.GetSurrounding45(region);
+        return around45.downLeft == null && around.down != null && around.left != null;
+    }
+
+    private bool IsCornerDownRight(Position<char> position, List<Position<char>> region)
+    {
+        var around = position.GetSurrounding(region);
+        if (around.down == null && around.right == null)
+            return true;
+        var around45 = position.GetSurrounding45(region);
+        return around45.downRight == null && around.down != null && around.right != null;
     }
 
     private List<Position<char>> RemoveRight(Position<char> position, List<Position<char>> fences)
