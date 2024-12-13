@@ -158,6 +158,20 @@ namespace AdventOfCode8
             return result;
         }
 
+        public static List<long> Primes(this long value)
+        {
+            var primes = new List<long>();
+            for (var i = 2L; i < Math.Sqrt(value); i++)
+            {
+                if (value % i == 0)
+                    primes.Add(i);
+            }
+            if (!primes.Any())
+                primes.Add(value);
+
+            return primes;
+        }
+
     }
 
 

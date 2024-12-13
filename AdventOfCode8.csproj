@@ -11,8 +11,4 @@
     <Compile Remove="Shoelace.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Input\" />
-  </ItemGroup>
-
 </Project>
