@@ -85,6 +85,7 @@ public partial class DayBase
                 Col < maxCol -1 ? new(Line, Col + 1) : null);
         }
 
+
         public static void Print(List<Position> map, char print)
         {
             for (var line = map.Min(m => m.Line); line <= map.Max(m => m.Line); line++)
@@ -121,6 +122,9 @@ public partial class DayBase
 
     public record Position<T>(int Line, int Col, T Value) : Position(Line, Col)
     {
+        public Position<T> Move(Position velocity) => new(Line + velocity.Line, Col + velocity.Col, Value);
+
+        public Position GetPosition() => new(Line, Col);
     }
 
     public record DPoint(double X, double Y)
