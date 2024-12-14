@@ -39,7 +39,7 @@ internal class Day13 : DayBase
 
         foreach (var machine in machines)
         {
-            Console.WriteLine(machine);
+            //Console.WriteLine(machine);
             cost += GetCost(machine);
         }
 
@@ -68,14 +68,17 @@ internal class Day13 : DayBase
             if (mod != 0)
                 continue;
             var b = rest / machine.B.Col;
-            Console.WriteLine($"a={a}, b={b}");
+            //Console.WriteLine($"a={a}, b={b}");
             var priceLine = a * machine.A.Line + b * machine.B.Line;
             if (priceLine != machine.Prize.Line)
                 continue;
             var machineCost = a * 3 + b;
+            if (cost != 0)
+                Console.WriteLine($"Following cost={cost}");
             cost = cost == 0 ? machineCost : Math.Min(cost, machineCost);
             Console.WriteLine($"a={a}, b={b}, cost={cost}");
         }
+        Console.WriteLine();
 
         return cost;
     }
