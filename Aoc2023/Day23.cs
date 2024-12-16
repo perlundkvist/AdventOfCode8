@@ -21,7 +21,7 @@ namespace AdventOfCode8.Aoc2023
             var map = GetMap(input);
             DrawMap(map);
 
-            //GetLongest(map);
+            GetLongest(map);
             map = GetMap2(input);
             GetLongest(map);
 
