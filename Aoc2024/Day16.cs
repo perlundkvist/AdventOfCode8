@@ -12,7 +12,7 @@ internal class Day16 : DayBase
 
     internal void Run()
     {
-        //Logg.DoLog = false;
+        Logg.DoLog = false;
 
         var input = GetInput("2024_16");
 
@@ -55,26 +55,52 @@ internal class Day16 : DayBase
         var moves = new List<(Position startPos, Position endPos, int steps, Direction direction, HashSet<Position> visited)>();
         if (startPos == endPos)
         {
-            cost = GetCost(visited);
+            var cost2 = GetCost(visited);
+            if (cost != cost2)
+                Console.WriteLine($"Found diff: {cost}. Cost: {cost2}");
             Cost = Math.Min(cost, Cost);
             Console.WriteLine($"Found end: {cost}. Cost: {Cost}");
             DrawMap(map, startPos, visited);
             return moves;
         }
-        //if (cost > Cost)
-        //    return moves;
-        //DrawMap(map, startPos, visited);
+        if (cost > Cost)
+            return moves;
+        //DrawMap2(map, startPos, visited);
+
         visited.Add(startPos);
-        var next = GetNext(direction, startPos.GetSurrounding(map));
+        var next = GetNext(direction, Direction.Left, startPos.GetSurrounding(map));
         if (next != null && ShouldTry(next, map, visited))
-            moves.Add(new(next, endPos, cost + 1, direction, [.. visited]));
-        next = GetNext(direction, Direction.Left, startPos.GetSurrounding(map));
-        if (next != null && ShouldTry(next, map, visited))
-            moves.Add(new(next, endPos, cost + 1000, direction, [.. visited]));
+            moves.Add(new(next, endPos, cost + 1001, NextDirection(direction, Direction.Left), [.. visited]));
         next = GetNext(direction, Direction.Right, startPos.GetSurrounding(map));
         if (next != null && ShouldTry(next, map, visited))
-            moves.Add(new(next, endPos, cost + 1000, direction, [.. visited]));
+            moves.Add(new(next, endPos, cost + 1001, NextDirection(direction, Direction.Right), [.. visited]));
+        next = GetNext(direction, startPos.GetSurrounding(map));
+        if (next != null && ShouldTry(next, map, visited))
+            moves.Add(new(next, endPos, cost + 1, direction, [.. visited]));
         return moves;
+    }
+
+    private Direction NextDirection(Direction direction, Direction turn)
+    {
+        if (turn == Direction.Left)
+            return direction switch
+            {
+                Direction.Up => Direction.Left,
+                Direction.Down => Direction.Right,
+                Direction.Left => Direction.Down,
+                Direction.Right => Direction.Up,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        if (turn == Direction.Right)
+            return direction switch
+            {
+                Direction.Up => Direction.Right,
+                Direction.Down => Direction.Left,
+                Direction.Left => Direction.Up,
+                Direction.Right => Direction.Down,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        throw new NotImplementedException();
     }
 
     private int GetCost(HashSet<Position> visited)
@@ -198,5 +224,33 @@ internal class Day16 : DayBase
         }
         Logg.WriteLine();
     }
+
+    private void DrawMap2(char[,] map, Position current, HashSet<Position> visited)
+    {
+        Thread.Sleep(2000);
+        Console.Clear();
+        var start = Math.Max(0, current.Line - 15);
+        var lines = Math.Min(map.GetLength(0), current.Line + 15);
+        var cols = map.GetLength(1);
+        for (var l = start; l < lines; l++)
+        {
+            for (var c = 0; c < cols; c++)
+            {
+                var v = visited?.SingleOrDefault(v => v.Line == l && v.Col == c);
+                var draw = v != null ? 'O' : current != null && current.Line == l && current.Col == c ? 'x' : map[l, c];
+                var fg = Console.ForegroundColor;
+                if (draw == 'x')
+                    Console.ForegroundColor = ConsoleColor.Red;
+                else if (draw == 'O')
+                    Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write($"{draw}");
+                Console.ForegroundColor = fg;
+            }
+            Console.WriteLine();
+        }
+        Console.WriteLine();
+        //Console.ReadKey(true);
+    }
+
 
 }
