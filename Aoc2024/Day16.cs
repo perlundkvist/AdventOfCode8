@@ -1,4 +1,5 @@
-﻿using System.Data.Common;
+﻿using AdventOfCode8.Aoc2023;
+using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using System.Text.RegularExpressions.Generated;
@@ -13,7 +14,7 @@ internal class Day16 : DayBase
     {
         //Logg.DoLog = false;
 
-        var input = GetInput("2024_16ss");
+        var input = GetInput("2024_16");
 
         #region Part 1
 
@@ -54,13 +55,14 @@ internal class Day16 : DayBase
         var moves = new List<(Position startPos, Position endPos, int steps, Direction direction, HashSet<Position> visited)>();
         if (startPos == endPos)
         {
+            cost = GetCost(visited);
             Cost = Math.Min(cost, Cost);
             Console.WriteLine($"Found end: {cost}. Cost: {Cost}");
             DrawMap(map, startPos, visited);
             return moves;
         }
-        if (cost > Cost)
-            return moves;
+        //if (cost > Cost)
+        //    return moves;
         //DrawMap(map, startPos, visited);
         visited.Add(startPos);
         var next = GetNext(direction, startPos.GetSurrounding(map));
@@ -73,6 +75,55 @@ internal class Day16 : DayBase
         if (next != null && ShouldTry(next, map, visited))
             moves.Add(new(next, endPos, cost + 1000, direction, [.. visited]));
         return moves;
+    }
+
+    private int GetCost(HashSet<Position> visited)
+    {
+        var cost = 0;
+        var direction = Direction.Right;
+        var current = new Position(visited.Max(v => v.Line), 1);
+        while (true)
+        {
+            var next = GetNext(direction, current.GetSurrounding(visited));
+            if (next != null)
+            {
+                cost++;
+                current = next;
+                continue;
+            }
+            next = GetNext(direction, Direction.Left, current.GetSurrounding(visited));
+            if (next != null)
+            {
+                cost += 1001;
+                current = next;
+                direction = direction switch
+                {
+                    Direction.Up => Direction.Left,
+                    Direction.Down => Direction.Right,
+                    Direction.Left => Direction.Down,
+                    Direction.Right => Direction.Up,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+                continue;
+            }
+            next = GetNext(direction, Direction.Right, current.GetSurrounding(visited));
+            if (next != null)
+            {
+                cost += 1001;
+                current = next;
+                direction = direction switch
+                {
+                    Direction.Up => Direction.Right,
+                    Direction.Down => Direction.Left,
+                    Direction.Left => Direction.Up,
+                    Direction.Right => Direction.Down,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+                continue;
+            }
+            break;
+        }
+        return cost + 1;
     }
 
     private Position? GetNext(Direction direction, (Position? up, Position? down, Position? left, Position? right) surrounding)
