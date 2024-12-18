@@ -15,7 +15,7 @@ internal class Day18 : DayBase
     {
         Logg.DoLog = false;
 
-        var input = GetInput("2024_18s");
+        var input = GetInput("2024_18");
 
         var length = input.Count < 30 ? 6 : 70;
         var map = new char[length + 1, length + 1];
@@ -64,7 +64,7 @@ internal class Day18 : DayBase
 
         var cost = GetCost(map, startPos, endPos, visited, 0);
 
-        Console.WriteLine($"Shortest route: {_shortest}.");
+        Console.WriteLine($"Shortest route: {_costs.First(c => c.Key == startPos)}");
     }
 
     private int GetCost(char[,] map, Position startPos, Position endPos, HashSet<Position> visited, int cost)
@@ -78,28 +78,31 @@ internal class Day18 : DayBase
         }
 
         if (_costs.TryGetValue(startPos, out var foundCost))
-            return cost + foundCost;
+            return foundCost == int.MaxValue ? foundCost : cost + foundCost;
 
+        if (visited.Count + 1 > _shortest)
+            return int.MaxValue;
+
+        DrawMap(map, startPos, visited);
         visited.Add(startPos);
         var (up, down, left, right) = startPos.GetSurrounding(map);
         Position? next;
         next = left;
         var nextCost = int.MaxValue;
         if (ShouldTry(next, map, visited))
-            nextCost = Math.Min(nextCost, GetCost(map, next, endPos, [.. visited], cost + 1));
+            nextCost = Math.Min(nextCost, GetCost(map, next, endPos, [.. visited],  1));
         next = up;
         if (ShouldTry(next, map, visited))
-            nextCost = Math.Min(nextCost, GetCost(map, next, endPos, [.. visited], cost + 1));
+            nextCost = Math.Min(nextCost, GetCost(map, next, endPos, [.. visited],  1));
         next = right;
         if (ShouldTry(next, map, visited))
-            nextCost = Math.Min(nextCost, GetCost(map, next, endPos, [.. visited], cost + 1));
+            nextCost = Math.Min(nextCost, GetCost(map, next, endPos, [.. visited], 1));
         next = down;
         if (ShouldTry(next, map, visited))
-            nextCost = Math.Min(nextCost, GetCost(map, next, endPos, [.. visited], cost + 1));
+            nextCost = Math.Min(nextCost, GetCost(map, next, endPos, [.. visited], 1));
+        _costs.Add(startPos, nextCost);
         if (nextCost == int.MaxValue)
             return nextCost;
-        
-        _costs.Add(startPos, nextCost);
         return cost + nextCost;
     }
 
@@ -190,6 +193,7 @@ internal class Day18 : DayBase
             }
             Console.WriteLine();
         }
+        Console.WriteLine();
         Console.WriteLine();
         if (sleep > 0)
             Thread.Sleep(sleep);
