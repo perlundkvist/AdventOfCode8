@@ -64,9 +64,10 @@ internal class Day18 : DayBase
         Console.WriteLine($"Shortest route: {_shortest}.");
     }
 
-    private List<(Position startPos, Position endPos, int steps, HashSet<Position> visited)> Move(Position moveStartPos, Position moveEndPos, int moveSteps, char[,] map, HashSet<Position> moveVisited)
+    private List<(Position startPos, Position endPos, int steps, HashSet<Position> visited)> Move(Position startPos, Position endPos, int steps, char[,] map, HashSet<Position> visited)
     {
-        throw new NotImplementedException();
+        var moves = new List<(Position startPos, Position endPos, int steps, HashSet<Position> visited)>();
+        return moves;
     }
 
     private static void DrawMap(char[,] map, Position? current = null, HashSet<Position>? visited = null)
