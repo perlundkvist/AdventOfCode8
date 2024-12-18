@@ -82,7 +82,7 @@ public partial class DayBase
                 Line > 0 ? new(Line - 1, Col) : null,
                 Line < maxLine  ? new(Line + 1, Col) : null,
                 Col > 0 ? new(Line, Col - 1) : null,
-                Col < maxCol -1 ? new(Line, Col + 1) : null);
+                Col < maxCol ? new(Line, Col + 1) : null);
         }
 
 
