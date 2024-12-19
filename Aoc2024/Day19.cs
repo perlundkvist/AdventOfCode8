@@ -8,8 +8,7 @@ namespace AdventOfCode8.Aoc2024;
 
 internal class Day19 : DayBase
 {
-    private int _shortest = int.MaxValue;
-    private Dictionary<Position, int> _costs = new ();
+    private HashSet<(string, string)> _tested = new ();
 
     internal void Run()
     {
@@ -23,6 +22,7 @@ internal class Day19 : DayBase
         var idx = 1;
         foreach (var design in input[2..])
         {
+            _tested.Clear();
             Console.WriteLine($"Design {idx++} ({input.Count - 2})");
             if (Possible(design, patterns))
                 correct++;
@@ -38,10 +38,10 @@ internal class Day19 : DayBase
         if (design == "")
             return true;
         var tryPatterns = patterns.Where(t => t[0] == design[0] && t.Length <= design.Length).ToList();
-        while (tryPatterns.Any())
+        foreach (var pattern in tryPatterns)
         {
-            var pattern = tryPatterns.First();
-            tryPatterns.Remove(pattern);
+            if (_tested.Contains((design, pattern)))
+                continue;
             if (!design.StartsWith(pattern)) 
                 continue;
             //Console.WriteLine($"{pattern}, {design}");
@@ -51,6 +51,7 @@ internal class Day19 : DayBase
             //tryPatterns = tryPatterns.Where(t => !noPatterns.Contains(t)).ToList();
         }
         //Console.WriteLine($"Failed: {design}");
+        tryPatterns.ForEach(t => _tested.Add((design, t)));
         return false;
     }
 }
