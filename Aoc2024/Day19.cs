@@ -15,7 +15,7 @@ internal class Day19 : DayBase
     {
         Logg.DoLog = false;
 
-        var input = GetInput("2024_19ss");
+        var input = GetInput("2024_19");
         var patterns = input[0].Split(", ").ToList();
         patterns = patterns.OrderByDescending(t => t.Length).ToList();
 
@@ -37,14 +37,18 @@ internal class Day19 : DayBase
     {
         if (design == "")
             return true;
-        var tryPatterns = patterns.Where(t => t[0] == design[0]).ToList();
-        foreach (var pattern in tryPatterns)
+        var tryPatterns = patterns.Where(t => t[0] == design[0] && t.Length <= design.Length).ToList();
+        while (tryPatterns.Any())
         {
+            var pattern = tryPatterns.First();
+            tryPatterns.Remove(pattern);
             if (!design.StartsWith(pattern)) 
                 continue;
             //Console.WriteLine($"{pattern}, {design}");
             if (Possible(design[pattern.Length..], patterns))
                 return true;
+            //var noPatterns = tryPatterns.Where(t => t.StartsWith(pattern)).ToList();
+            //tryPatterns = tryPatterns.Where(t => !noPatterns.Contains(t)).ToList();
         }
         //Console.WriteLine($"Failed: {design}");
         return false;
