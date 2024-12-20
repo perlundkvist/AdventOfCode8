@@ -9,7 +9,7 @@ namespace AdventOfCode8.Aoc2024;
 internal class Day18 : DayBase
 {
     private int _shortest = int.MaxValue;
-    private Dictionary<Position, int> _costs = new ();
+    private readonly Dictionary<Position, int> _costs = new ();
 
     internal void Run()
     {
@@ -25,6 +25,7 @@ internal class Day18 : DayBase
             var numbers = Regex.Match(line, "(\\d+),(\\d+)");
             map[int.Parse(numbers.Groups[2].Value), int.Parse(numbers.Groups[1].Value)] = '#';
         }
+
 
         //for (var i = 0; i < length; i++)
         //{
@@ -62,9 +63,27 @@ internal class Day18 : DayBase
         //    toAdd.ForEach(m => moves.Push(m));
         //}
 
-        var cost = GetCost(map, startPos, endPos, visited, 0);
+        var moves = new List<(int distance, Position start, HashSet<Position> visited)>();
+
+        moves.Add((startPos.ManhattanDistance(endPos), startPos, visited));
+        while (moves.Count > 0)
+        {
+            var move = moves.OrderBy(m => m.distance).First();
+            var toAdd = GetCost2(move.start, endPos, visited, map);
+
+            foreach (var add in toAdd)
+            {
+            }
+
+            //toAdd.ForEach(m => moves.Enqueue(m, m.Item1.ManhattanDistance(endPos)));
+        }
 
         Console.WriteLine($"Shortest route: {_costs.First(c => c.Key == startPos)}");
+    }
+
+    private List<(Position, Position, HashSet<Position>)> GetCost2(Position start, Position end, HashSet<Position> visited, char[,] map)
+    {
+        throw new NotImplementedException();
     }
 
     private int GetCost(char[,] map, Position startPos, Position endPos, HashSet<Position> visited, int cost)
