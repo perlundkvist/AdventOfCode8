@@ -188,34 +188,4 @@ internal class Day18 : DayBase
         return true;
     }
 
-
-    private static void DrawMap(char[,] map, Position? current = null, HashSet<Position>? visited = null, int sleep = 0)
-    {
-        if (!Logg.DoLog)
-            return;
-        var lines = map.GetLength(0);
-        var cols = map.GetLength(1);
-        Console.Clear();
-        for (var l = 0; l < lines; l++)
-        {
-            for (var c = 0; c < cols; c++)
-            {
-                var v = visited?.SingleOrDefault(v => v.Line == l && v.Col == c);
-                var draw = v != null ? 'O' : current != null && current.Line == l && current.Col == c ? 'x' : map[l, c];
-                var fg = Console.ForegroundColor;
-                if (draw == 'x')
-                    Console.ForegroundColor = ConsoleColor.Red;
-                else if (draw == 'O')
-                    Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write($"{(draw == 0 ? '.' : draw)}");
-                Console.ForegroundColor = fg;
-            }
-            Console.WriteLine();
-        }
-        Console.WriteLine();
-        Console.WriteLine();
-        if (sleep > 0)
-            Thread.Sleep(sleep);
-    }
-
 }
