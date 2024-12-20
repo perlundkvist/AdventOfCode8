@@ -8,7 +8,8 @@ namespace AdventOfCode8.Aoc2024;
 
 internal class Day19 : DayBase
 {
-    private HashSet<(string, string)> _tested = new ();
+    private readonly HashSet<(string, string)> _failed = new ();
+    private readonly Dictionary<(string, string), long> _variants = new ();
 
     internal void Run()
     {
@@ -22,7 +23,7 @@ internal class Day19 : DayBase
         var idx = 1;
         foreach (var design in input[2..])
         {
-            _tested.Clear();
+            //_tested.Clear();
             Console.WriteLine($"Design {idx++} ({input.Count - 2})");
             if (Possible(design, patterns))
                 correct++;
@@ -30,7 +31,20 @@ internal class Day19 : DayBase
                 Console.WriteLine($"Failed: {design}");
         }
 
-        Console.WriteLine($"Correct: {correct}. 306 too low");
+        Console.WriteLine($"Correct: {correct}");
+        Console.WriteLine();
+
+        idx = 1;
+        var variants = 0L;
+        foreach (var design in input[2..])
+        {
+            //Console.WriteLine($"Design {idx++} ({input.Count - 2})");
+            var value = Possible2(design, patterns);
+            Console.WriteLine($"Design {design}: {value}");
+            variants += value;
+        }
+
+        Console.WriteLine($"Variants: {variants} 95809698 too low");
     }
 
     private bool Possible(string design, List<string> patterns)
@@ -40,7 +54,7 @@ internal class Day19 : DayBase
         var tryPatterns = patterns.Where(t => t[0] == design[0] && t.Length <= design.Length).ToList();
         foreach (var pattern in tryPatterns)
         {
-            if (_tested.Contains((design, pattern)))
+            if (_failed.Contains((design, pattern)))
                 continue;
             if (!design.StartsWith(pattern)) 
                 continue;
@@ -51,7 +65,31 @@ internal class Day19 : DayBase
             //tryPatterns = tryPatterns.Where(t => !noPatterns.Contains(t)).ToList();
         }
         //Console.WriteLine($"Failed: {design}");
-        tryPatterns.ForEach(t => _tested.Add((design, t)));
+        tryPatterns.ForEach(t => _failed.Add((design, t)));
         return false;
+    }
+
+    private long Possible2(string design, List<string> patterns)
+    {
+        if (design == "")
+            return 1;
+        var tryPatterns = patterns.Where(t => t[0] == design[0] && t.Length <= design.Length).ToList();
+        var variants = 0L;
+        foreach (var pattern in tryPatterns)
+        {
+            if (_failed.Contains((design, pattern)))
+                continue;
+            if (!_variants.TryGetValue((design, pattern), out var value))
+            {
+                if (!design.StartsWith(pattern))
+                    continue;
+                //Console.WriteLine($"{pattern}, {design}");
+                value = Possible2(design[pattern.Length..], patterns);
+                _variants.Add((design, pattern), value);
+            }
+            variants += value;
+        }
+        //Console.WriteLine($"Failed: {design}");
+        return variants;
     }
 }
