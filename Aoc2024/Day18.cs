@@ -19,11 +19,13 @@ internal class Day18 : DayBase
 
         var length = input.Count < 30 ? 6 : 70;
         var map = new char[length + 1, length + 1];
+        var map2 = new int[length + 1, length + 1];
         var stop = input.Count < 30 ? 12 : 1024;
         foreach (var line in input[..stop])
         {
             var numbers = Regex.Match(line, "(\\d+),(\\d+)");
             map[int.Parse(numbers.Groups[2].Value), int.Parse(numbers.Groups[1].Value)] = '#';
+            map2[int.Parse(numbers.Groups[2].Value), int.Parse(numbers.Groups[1].Value)] = 1;
         }
 
 
@@ -37,8 +39,52 @@ internal class Day18 : DayBase
         //}
 
         DrawMap(map);
+        var route = Pathfind.AStar(new Vec2(0, 0), new Vec2(length, length), map2);
+        Console.WriteLine($"Route: {route.Count-1}");
 
-        GetShortest(map);
+        var idx = 0;
+        map2 = new int[length + 1, length + 1];
+        foreach (var line in input)
+        {
+            var numbers = Regex.Match(line, "(\\d+),(\\d+)");
+            //map[int.Parse(numbers.Groups[2].Value), int.Parse(numbers.Groups[1].Value)] = '#';
+            map2[int.Parse(numbers.Groups[2].Value), int.Parse(numbers.Groups[1].Value)] = 1;
+            if (idx > 1000 && idx % 100 == 0)
+            {
+                route = Pathfind.AStar(new Vec2(0, 0), new Vec2(length, length), map2);
+                Console.WriteLine($"Route ({idx}): {route.Count}");
+                if(route.Count == 0)
+                    break;
+            }
+
+            idx++;
+        }
+
+        var start = idx - 100;
+        map2 = new int[length + 1, length + 1];
+        idx = 0;
+        foreach (var line in input)
+        {
+            var numbers = Regex.Match(line, "(\\d+),(\\d+)");
+            //map[int.Parse(numbers.Groups[2].Value), int.Parse(numbers.Groups[1].Value)] = '#';
+            map2[int.Parse(numbers.Groups[2].Value), int.Parse(numbers.Groups[1].Value)] = 1;
+            if (idx >= start)
+            {
+                route = Pathfind.AStar(new Vec2(0, 0), new Vec2(length, length), map2);
+                Console.WriteLine($"Route ({idx}): {route.Count}");
+                if (route.Count == 0)
+                {
+                    Console.WriteLine($"Stopped at {line}");
+                    break;
+                }
+            }
+
+            idx++;
+        }
+
+
+
+        //GetShortest(map);
     }
 
     private void GetShortest(char[,] map)
