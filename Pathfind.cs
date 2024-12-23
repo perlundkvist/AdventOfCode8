@@ -3,19 +3,20 @@
     public class Pathfind
     {
 
-        private static List<Vec2> directions = new List<Vec2>()
-            {
-                new Vec2(1, 0),
-                new Vec2(-1, 0),
-                new Vec2(0, 1),
-                new Vec2(0, -1)
-            };
-        private static double Heuristic(Vec2 current, Vec2 end)
+        public static List<Vec2> Directions =
+        [
+            new Vec2(1, 0),
+            new Vec2(-1, 0),
+            new Vec2(0, 1),
+            new Vec2(0, -1)
+        ];
+
+        public static double Heuristic(Vec2 current, Vec2 end)
         {
             return (end - current).Length();
         }
 
-        private static List<Vec2> ConstructPath(Dictionary<Vec2, Vec2> parentMap, Vec2 current)
+        public static List<Vec2> ConstructPath(Dictionary<Vec2, Vec2> parentMap, Vec2 current)
         {
             var path = new List<Vec2>() { current };
 
@@ -45,7 +46,7 @@
                 }
                 visited.Add(current);
 
-                foreach (var dir in directions)
+                foreach (var dir in Directions)
                 {
                     var neighbor = current + dir;
                     if (visited.Contains(neighbor) || neighbor.X < 0 || neighbor.Y < 0 || neighbor.X >= map.GetLength(0) || neighbor.Y >= map.GetLength(1) || map[neighbor.X, neighbor.Y] != 0)
@@ -84,7 +85,7 @@
 
                 closedPoints.Add(current);
 
-                foreach (var dir in directions)
+                foreach (var dir in Directions)
                 {
                     var neighbor = current + dir;
                     if (closedPoints.Contains(neighbor) || neighbor.X < 0 || neighbor.Y < 0 || neighbor.X >= map.GetLength(0) || neighbor.Y >= map.GetLength(1) || map[neighbor.X, neighbor.Y] != 0)

@@ -3,6 +3,7 @@ using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using System.Text.RegularExpressions.Generated;
+using static AdventOfCode8.DayBase;
 
 namespace AdventOfCode8.Aoc2024;
 
@@ -20,16 +21,85 @@ internal class Day16 : DayBase
 
         var map = input.ToCharArray();
 
-        Print(map);
+        var map2 = new int[input.Count, input[0].Length];
+        for (var y = 0; y < input.Count; y++)
+        {
+            for (var x = 0; x < input[0].Length; x++)
+            {
+                map2[x, y] = input[y][x] == '#' ? 1 : 0;
+            }
+        }
 
-        GetCheapest(map);
+        //Print(map);
+        //Print(map2);
 
+        //GetCheapest(map);
+        var startPos = new Vec2(1, map.GetLength(0) - 2);
+        var endPos = new Vec2(map.GetLength(1) - 2, 1);
+        var route = AStar(startPos, endPos, map2);
 
-        Console.WriteLine($"Cost: {Cost}");
+        //var visited = route.Select(v => new Position((int)v.Y, (int)v.X)).ToHashSet();
+        //var cost = GetCost(visited);
+        var cost = GetCost(route);
+
+        Console.WriteLine($"Cost: {cost}. 84432 is wrong");
 
         #endregion
 
     }
+
+    public static List<Vec2> AStar(Vec2 start, Vec2 end, int[,] map)
+    {
+        var openPoints = new PriorityQueue<Vec2, double>();
+        var addedPoints = new HashSet<Vec2>();
+        var closedPoints = new HashSet<Vec2>();
+
+        var startHeuristic = Pathfind.Heuristic(start, end);
+        openPoints.Enqueue(start, startHeuristic);
+
+        var gScore = new Dictionary<Vec2, double> { [start] = 0 };
+        var parentMap = new Dictionary<Vec2, Vec2>();
+        var directionMap = new Dictionary<Vec2, Vec2> { [start] = Pathfind.Directions[0] };
+        
+        while (openPoints.Count > 0)
+        {
+            var current = openPoints.Dequeue();
+            if (current == end)
+            {
+                return Pathfind.ConstructPath(parentMap, current);
+            }
+            closedPoints.Add(current);
+
+            foreach (var dir in Pathfind.Directions)
+            {
+                var neighbor = current + dir;
+                if (closedPoints.Contains(neighbor) || neighbor.X < 0 || neighbor.Y < 0 || neighbor.X >= map.GetLength(0) || neighbor.Y >= map.GetLength(1) || map[neighbor.X, neighbor.Y] != 0)
+                {
+                    continue;
+                }
+                var direction = directionMap[current];
+                var cost = dir == direction ? 1 : 1001;
+                var tentativeG = gScore[current] + cost;
+                if (!gScore.ContainsKey(neighbor) || tentativeG < gScore[neighbor])
+                {
+                    var fScore = gScore[neighbor] = tentativeG;
+                    fScore += Pathfind.Heuristic(neighbor, end);
+
+                    parentMap[neighbor] = current;
+
+                    if (!addedPoints.Contains(neighbor))
+                    {
+                        openPoints.Enqueue(neighbor, fScore);
+                        addedPoints.Add(neighbor);
+                    }
+                    directionMap[neighbor] = dir;
+                }
+            }
+        }
+
+        return [];
+    }
+
 
     private void GetCheapest(char[,] map)
     {
@@ -150,6 +220,29 @@ internal class Day16 : DayBase
             break;
         }
         return cost + 1;
+    }
+
+    private static long GetCost(List<Vec2> visited)
+    {
+        var cost = 0L;
+        var direction = Pathfind.Directions[2]; // Right
+        var current = visited.First();
+        foreach (var next in visited.Skip(1))
+        {
+            var diff = next - current;
+            if (diff == direction)
+            {
+                cost++;
+            }
+            else
+            {
+                cost += 1001;
+                direction = diff;
+            }
+            current = next;
+        }
+
+        return cost;
     }
 
     private Position? GetNext(Direction direction, (Position? up, Position? down, Position? left, Position? right) surrounding)

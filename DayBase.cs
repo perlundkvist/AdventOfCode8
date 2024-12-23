@@ -56,6 +56,18 @@ namespace AdventOfCode8
             }
         }
 
+        public static void Print(int[,] array)
+        {
+            for (var i = 0; i < array.GetLength(0); i++)
+            {
+                for (var j = 0; j < array.GetLength(1); j++)
+                {
+                    Console.Write(array[i, j] == 0 ? '.' : '#');
+                }
+                Console.WriteLine();
+            }
+        }
+
         public static void DrawMap(char[,] map, Position? current = null, HashSet<Position>? visited = null, int sleep = 0, bool clear = true)
         {
             if (!Logg.DoLog)
