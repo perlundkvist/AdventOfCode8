@@ -13,8 +13,7 @@ internal class Day23 : DayBase
     {
         Logg.DoLog = false;
 
-        var fileName = "2024_23";
-        var input = GetInput(fileName);
+        var input = GetInput("2024_23");
         var start = DateTime.Now;
 
         var connections = new List<Tuple<string, string>>();
@@ -25,45 +24,48 @@ internal class Day23 : DayBase
         }
 
         connections = connections.OrderBy(c => c.Item1).ToList();
+
         var maps = GetMaps(connections);
 
-        foreach (var map in maps.OrderBy(m => m[0]))
-        {
-            Console.WriteLine(string.Join(',', map));
-        }
+        //foreach (var map in maps.OrderBy(m => m[0]))
+        //{
+        //    Console.WriteLine(string.Join(',', map));
+        //}
 
         Console.WriteLine($"Sets {maps.Count(m => m.Any(c => c[0] == 't'))}");
         Console.WriteLine($"{DateTime.Now-start}");
 
-        var computers = maps.Select(m => m[0]).ToList().Distinct().ToList();
-        Console.WriteLine(string.Join(',', computers));
-        var comp = string.Join(',', computers);
+        start = DateTime.Now;
+        var groups= maps.GroupBy(m => m[0]).ToList();
+        foreach (var group in groups.OrderByDescending(g => g.Count()))
+        {
+            var list = group.ToList();
+            if (!AllConnected(list, connections))
+                continue;
+            var computers = list.SelectMany(l => l).Distinct().OrderBy(c => c).ToList();
+            Console.WriteLine($"Password: {string.Join(',', computers)}. av,dg,ot,di,dw,fa,ge,ax,kh,yw,vz,ki,qw is wrong");
+            break;
+        }
+        Console.WriteLine($"{DateTime.Now - start}");
 
 
     }
 
-    private List<string> GetLinks(List<string> computers, string end, List<Tuple<string, string>> connections, List<Tuple<string, string>> usedConnections)
+    private bool AllConnected(List<List<string>> list, List<Tuple<string, string>> connections)
     {
-        var last = computers.Last();
-        var myConnections = connections.Where(c => !usedConnections.Contains(c) && (c.Item1 == last || c.Item2 == last)).ToList();
-        if (myConnections.Count == 0)
-            return computers.Last() == end ? computers : [];
-        foreach (var connection in myConnections)
+        var computers = list.SelectMany(l => l).Distinct().ToList();
+        var idx = 0;
+        foreach (var computer1 in computers)
         {
-            var next = connection.Item1 == last ? connection.Item2 : connection.Item1;
-            if (computers.Contains(next))
-                continue;
-            if (next == end)
+            idx++;
+            var rest = computers[idx..];
+            foreach (var computer2 in rest)
             {
-                computers.Add(next);
-                return computers;
+                if (!connections.Any(c => c.Item1 == computer1 && c.Item2 == computer2 || c.Item1 == computer2 && c.Item2 == computer1))
+                    return false;
             }
-            computers.Add(next);
-            var used = usedConnections.ToList();
-            used.Add(connection);
-            computers.AddRange(GetLinks(computers[..], end, connections, used));
         }
-        return computers;
+        return true;
     }
 
     private List<List<string>> GetMaps(List<Tuple<string, string>> connections)
