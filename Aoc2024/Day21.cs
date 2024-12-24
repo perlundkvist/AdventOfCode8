@@ -21,21 +21,23 @@ internal class Day21 : DayBase
 
     internal void Run()
     {
-        Logg.DoLog = true;
+        Logg.DoLog = false;
 
         var input = GetInput("2024_21s");
         var complexity = 0L;
 
-        var d = RunRobot("v<<A>>^A<A>AvA<^AA>A<vAAA>^A", Keypad2, false);
-        Console.WriteLine($"{d.Length} {d}");
-        d = RunRobot(d, Keypad, false);
-        Console.WriteLine($"{d.Length} {d}");
-        //RunRobots("<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A");
+        //var d = RunRobot("<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A", Keypad2, false);
+        //Console.WriteLine($"{d.Length} {d}");
+        //d = RunRobot(d, Keypad2, true);
+        //Console.WriteLine($"{d.Length} {d}");
+        //d = RunRobot(d, Keypad, true);
+        //Console.WriteLine($"{d.Length} {d}");
+        ////RunRobots("<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A");
 
-        var dir = GetDirections("379A");
-        dir = GetDirections("379A");
-        RunRobots(dir);
-        Console.WriteLine($"{dir.Length}");
+        //var dir = GetDirections("379A");
+        //dir = GetDirections("379A");
+        //RunRobots(dir);
+        //Console.WriteLine($"{dir.Length}");
 
         foreach (var line in input)
         {
@@ -45,7 +47,7 @@ internal class Day21 : DayBase
             complexity += directions.Length * value;
         }
 
-        Console.WriteLine($"complexity {complexity}");
+        Console.WriteLine($"complexity {complexity}. 293472 too high");
 
 
     }
@@ -87,7 +89,7 @@ internal class Day21 : DayBase
                     throw new ArgumentException(move.ToString());
             }
         }
-        Console.WriteLine($"Output: {output}");
+        Logg.WriteLine($"Output: {output}");
         return output;
     }
 
@@ -111,12 +113,20 @@ internal class Day21 : DayBase
             var cols = end.Col - start.Col;
             bool preferLines;
             var last = direction == "" ? ' ' : direction.Last();
+            if (last == 'A')
+            {
+                var p = direction.LastOrDefault(d => d is 'R');
+                var arrow = direction.LastOrDefault(d => d is '<' or '>' or '^' or 'v');
+                if (arrow != (char)0)
+                    last = arrow;
+            }
+
             if (avoidGap && start.Col == 0 && end.Line == lineA)
                 preferLines = true;
             else if (avoidGap && end.Col == 0 && start.Line == lineA)
                 preferLines = false;
             else
-                preferLines = last is '<' or '>';
+                preferLines = last is '<' or '>' or 'A';
             if (preferLines)
             {
                 direction = direction.PadRight(direction.Length + Math.Abs(cols), cols < 0 ? '<' : '>');
@@ -131,51 +141,7 @@ internal class Day21 : DayBase
             direction += 'A';
             start = end;
         }
-        Console.WriteLine($"Direction: {direction}");
+        Logg.WriteLine($"Direction: {direction}");
         return direction;
-    }
-
-    private List<string> GetDirections2(string result)
-    {
-        var directions = GetDirections2(result, Keypad);
-        return directions;
-    }
-
-    private List<string> GetDirections2(string result, List<Position<char>> keypad, bool avoidGap = true)
-    {
-        var directions = new List<string>();
-        var direction = "";
-        var start = keypad.First(k => k.Value == 'A');
-        var lineA = start.Line;
-        foreach (var next in result)
-        {
-            var end = keypad.First(k => k.Value == next);
-            var lines = end.Line - start.Line;
-            var cols = end.Col - start.Col;
-
-            bool preferLines;
-            var last = direction == "" ? ' ' : direction.Last();
-            if (avoidGap && start.Col == 0 && end.Line == lineA)
-                preferLines = true;
-            else if (avoidGap && end.Col == 0 && start.Line == lineA)
-                preferLines = false;
-            else
-                preferLines = last is '<' or '>';
-            if (preferLines)
-            {
-                direction = direction.PadRight(direction.Length + Math.Abs(cols), cols < 0 ? '<' : '>');
-                direction = direction.PadRight(direction.Length + Math.Abs(lines), lines < 0 ? '^' : 'v');
-            }
-            else
-            {
-                direction = direction.PadRight(direction.Length + Math.Abs(lines), lines < 0 ? '^' : 'v');
-                direction = direction.PadRight(direction.Length + Math.Abs(cols), cols < 0 ? '<' : '>');
-            }
-
-            direction += 'A';
-            start = end;
-        }
-        Console.WriteLine($"Direction: {direction}");
-        return directions;
     }
 }

@@ -1,0 +1,15 @@
+Output: <A>Av<<AA>^AA>AvAA^A<vAAA>^A
+28 <A>Av<<AA>^AA>AvAA^A<vAAA>^A
+Output: ^A<<^^A>>AvvvA
+14 ^A<<^^A>>AvvvA
+Output: 379A
+
+4 379A
+Direction: ^A^^<<A>>AvvvA
+Output:    ^A<<^^A>>AvvvA
+
+Direction: <A>A<AAv<AA>>^AvAA^Av<AAA^>A
+Output:    <A>Av<<AA>^AA>AvAA^A<vAAA>^A
+
+Direction: v<<A^>>AvA^Av<<A^>>AAv<A<A^>>AAvAA^<A>Av<A^>AA<A>Av<A<A^>>AAA<Av>A^A
+           <v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
