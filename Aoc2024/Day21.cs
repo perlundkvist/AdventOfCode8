@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using static AdventOfCode8.Aoc2023.Day06;
 using static AdventOfCode8.DayBase;
 
 namespace AdventOfCode8.Aoc2024;
@@ -19,129 +20,85 @@ internal class Day21 : DayBase
         new Position<char>(1, 0, '<'), new Position<char>(1, 1, 'v'), new Position<char>(1, 2, '>'),
     ];
 
+    private Dictionary<(char, char, int), long> _tested = new();
+
     internal void Run()
     {
         Logg.DoLog = false;
 
-        var input = GetInput("2024_21s");
+        var input = GetInput("2024_21");
         var complexity = 0L;
-
-        //var d = RunRobot("<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A", Keypad2, false);
-        //Console.WriteLine($"{d.Length} {d}");
-        //d = RunRobot(d, Keypad2, true);
-        //Console.WriteLine($"{d.Length} {d}");
-        //d = RunRobot(d, Keypad, true);
-        //Console.WriteLine($"{d.Length} {d}");
-        ////RunRobots("<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A");
-
-        //var dir = GetDirections("379A");
-        //dir = GetDirections("379A");
-        //RunRobots(dir);
-        //Console.WriteLine($"{dir.Length}");
 
         foreach (var line in input)
         {
-            var directions = GetDirections(line);
+            var movements = GetMovements(line);
             var value = int.Parse(line[..3]);
-            Console.WriteLine($"{directions.Length}*{value}");
-            complexity += directions.Length * value;
+            Console.WriteLine($"{movements}*{value}");
+            complexity += movements * value;
         }
 
-        Console.WriteLine($"complexity {complexity}. 293472 too high");
-
-
+        Console.WriteLine($"complexity {complexity}");
     }
 
-    private void RunRobots(string direction)
+    private long GetMovements(string result)
     {
-        direction = RunRobot(direction, Keypad2, false);
-        direction = RunRobot(direction, Keypad2);
-        direction = RunRobot(direction, Keypad);
-    }
-
-    private string RunRobot(string dir, List<Position<char>> keypad, bool avoidGap = true)
-    {
-        var start = keypad.First(k => k.Value == 'A');
-        var output = "";
-        foreach (var move in dir)
-        {
-            if (avoidGap && start.Value == ' ')
-                Console.WriteLine("Moved to gap");
-
-            switch (move)
-            {
-                case '^':
-                    start = keypad.First(k => k.Line == start.Line - 1 && k.Col == start.Col);
-                    break;
-                case 'v':
-                    start = keypad.First(k => k.Line == start.Line + 1 && k.Col == start.Col);
-                    break;
-                case '<':
-                    start = keypad.First(k => k.Line == start.Line && k.Col == start.Col - 1);
-                    break;
-                case '>':
-                    start = keypad.First(k => k.Line == start.Line && k.Col == start.Col + 1);
-                    break;
-                case 'A':
-                    output += start.Value;
-                    break;
-                default:
-                    throw new ArgumentException(move.ToString());
-            }
-        }
-        Logg.WriteLine($"Output: {output}");
-        return output;
-    }
-
-    private string GetDirections(string result)
-    {
-        var direction = GetDirections(result, Keypad);
-        direction = GetDirections(direction, Keypad2);
-        direction = GetDirections(direction, Keypad2, false);
+        var direction = GetMovements(result, 1);
         return direction;
     }
 
-    private string GetDirections(string result, List<Position<char>> keypad, bool avoidGap = true)
+    private long GetMovements(string keys, int robot)
     {
-        var direction = "";
-        var start = keypad.First(k => k.Value == 'A');
-        var lineA = start.Line;
-        foreach (var next in result)
+        if (robot == 27) // All robots have moved
+            return keys.Length;
+
+        var currentKey = 'A';
+        var length = 0L;
+
+        foreach (var nextKey in keys)
         {
-            var end = keypad.First(k => k.Value == next);
-            var lines = end.Line - start.Line;
-            var cols = end.Col - start.Col;
-            bool preferLines;
-            var last = direction == "" ? ' ' : direction.Last();
-            if (last == 'A')
-            {
-                var p = direction.LastOrDefault(d => d is 'R');
-                var arrow = direction.LastOrDefault(d => d is '<' or '>' or '^' or 'v');
-                if (arrow != (char)0)
-                    last = arrow;
-            }
-
-            if (avoidGap && start.Col == 0 && end.Line == lineA)
-                preferLines = true;
-            else if (avoidGap && end.Col == 0 && start.Line == lineA)
-                preferLines = false;
-            else
-                preferLines = last is '<' or '>' or 'A';
-            if (preferLines)
-            {
-                direction = direction.PadRight(direction.Length + Math.Abs(cols), cols < 0 ? '<' : '>');
-                direction = direction.PadRight(direction.Length + Math.Abs(lines), lines < 0 ? '^' : 'v');
-            }
-            else
-            {
-                direction = direction.PadRight(direction.Length + Math.Abs(lines), lines < 0 ? '^' : 'v');
-                direction = direction.PadRight(direction.Length + Math.Abs(cols), cols < 0 ? '<' : '>');
-            }
-
-            direction += 'A';
-            start = end;
+            var movements =  GetMovements(currentKey, nextKey, robot);
+            length += movements;
+            currentKey = nextKey;
         }
-        Logg.WriteLine($"Direction: {direction}");
-        return direction;
+
+        return length;
+    }
+
+    private long GetMovements(char currentKey, char nextKey, int robot) {
+
+        if (nextKey == ' ')
+            Console.WriteLine("Space");
+
+        if (_tested.ContainsKey((currentKey, nextKey, robot)))
+            return _tested[(currentKey, nextKey, robot)];
+
+        var keypad = robot == 1 ? Keypad : Keypad2;
+
+        var start = keypad.First(k => k.Value == currentKey);
+        var end = keypad.First(k => k.Value == nextKey);
+
+        var lines = end.Line - start.Line;
+        var cols = end.Col - start.Col;
+
+        var colKeys = new string(cols < 0 ? '<' : '>', Math.Abs(cols));
+        var lineKeys = new string(lines < 0 ? '^' : 'v', Math.Abs(lines));
+
+        var movements = long.MaxValue;
+
+        if (keypad.First(k => k.Line == end.Line && k.Col == start.Col).Value != ' ')
+        {
+            var cost = GetMovements($"{lineKeys}{colKeys}A", robot + 1);
+            //Console.WriteLine($" Testing {currentKey} -> {nextKey} {lineKeys}{colKeys}A : {movements} ");
+            movements = Math.Min(movements, cost);
+        }
+
+        if (keypad.First(k => k.Line == start.Line && k.Col == end.Col).Value != ' ')
+        {
+            var cost = GetMovements($"{colKeys}{lineKeys}A", robot + 1);
+            //Console.WriteLine($" Testing {currentKey} -> {nextKey} {colKeys}{lineKeys}A : {movements} ");
+            movements = Math.Min(movements, cost);
+        }
+        _tested.Add((currentKey, nextKey, robot), movements);
+        return movements;
     }
 }
