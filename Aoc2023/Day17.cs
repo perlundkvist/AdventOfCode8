@@ -129,6 +129,6 @@
             return new Position<int>(line, col, map[line, col]);
         }
 
-        private record Visited(int Line, int Col, Direction Direction, int Steps) { }
+        private record Visited(long Line, long Col, Direction Direction, int Steps) { }
     }
 }

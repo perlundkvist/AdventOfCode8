@@ -53,7 +53,7 @@ internal class Day20 : DayBase
 
     private void GetCheats2(char[,] map, List<Position> route, int save, int cheatTime)
     {
-        var cheats = new List<Position<int>>();
+        var cheats = new List<Position<long>>();
         foreach (var position in route)
         {
             var cheatPositions = GetCheatPositions2(position, route, map, cheatTime).ToList();
@@ -67,7 +67,7 @@ internal class Day20 : DayBase
                 var diff = saved - cheatCost;
                 if (diff < save)
                     continue;
-                cheats.Add(new Position<int>(cheatPosition.Line, cheatPosition.Col, diff));
+                cheats.Add(new Position<long>(cheatPosition.Line, cheatPosition.Col, diff));
             }
         }
         var grouped = cheats.GroupBy(c => c.Value);

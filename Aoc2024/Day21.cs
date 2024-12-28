@@ -80,8 +80,8 @@ internal class Day21 : DayBase
         var lines = end.Line - start.Line;
         var cols = end.Col - start.Col;
 
-        var colKeys = new string(cols < 0 ? '<' : '>', Math.Abs(cols));
-        var lineKeys = new string(lines < 0 ? '^' : 'v', Math.Abs(lines));
+        var colKeys = new string(cols < 0 ? '<' : '>', (int)Math.Abs(cols));
+        var lineKeys = new string(lines < 0 ? '^' : 'v', (int)Math.Abs(lines));
 
         var movements = long.MaxValue;
 

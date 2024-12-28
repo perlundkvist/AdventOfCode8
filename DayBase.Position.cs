@@ -17,14 +17,14 @@ public partial class DayBase
     //    public T2 Value { get; } = value;
     //}
 
-    public record Position(int Line, int Col)
+    public record Position(long Line, long Col)
     {
-        public int ManhattanDistance(Position p2) => Math.Abs(Line - p2.Line) + Math.Abs(Col - p2.Col);
+        public long ManhattanDistance(Position p2) => Math.Abs(Line - p2.Line) + Math.Abs(Col - p2.Col);
 
-        public static int ShoelaceArea(List<Position> area)
+        public static long ShoelaceArea(List<Position> area)
         {
             var n = area.Count;
-            var a = 0;
+            var a = 0L;
             for (var i = 0; i < n - 1; i++)
             {
                 a += area[i].Col * area[i + 1].Line - area[i + 1].Col * area[i].Line;
@@ -116,11 +116,11 @@ public partial class DayBase
 
     }
 
-    public record PositionString(int Line, int Col, string Value) : Position(Line, Col)
+    public record PositionString(long Line, long Col, string Value) : Position(Line, Col)
     {
     }
 
-    public record Position<T>(int Line, int Col, T Value) : Position(Line, Col)
+    public record Position<T>(long Line, long Col, T Value) : Position(Line, Col)
     {
         public Position<T> Move(Position velocity) => new(Line + velocity.Line, Col + velocity.Col, Value);
 
@@ -132,7 +132,7 @@ public partial class DayBase
         public DPoint Move(DPoint velocity) => new(X + velocity.X, Y + velocity.Y);
     }
 
-    public record Line () : IEquatable<Line> 
+    public record Line ()
     {
         public double K { get; }
         public double M { get; }
@@ -167,12 +167,12 @@ public partial class DayBase
             return new DPoint(GetX(y), y);
         }
 
-        public DPoint? GetIntersectionWith(Line line2)
+        public DPoint? GetIntersectionWith(Line line2, double tolerance = 0.000001)
         {
             if (line2.Equals(this)) 
                 return null;
 
-            if (K == line2.K)
+            if (Math.Abs(K - line2.K) < tolerance)
                 return null;
 
             if (Vertical)

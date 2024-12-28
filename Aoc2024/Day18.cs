@@ -109,7 +109,7 @@ internal class Day18 : DayBase
         //    toAdd.ForEach(m => moves.Push(m));
         //}
 
-        var moves = new List<(int distance, Position start, HashSet<Position> visited)>();
+        var moves = new List<(long distance, Position start, HashSet<Position> visited)>();
 
         moves.Add((startPos.ManhattanDistance(endPos), startPos, visited));
         while (moves.Count > 0)

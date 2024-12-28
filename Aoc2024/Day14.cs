@@ -96,7 +96,7 @@ internal class Day14 : DayBase
         return inLine.Count == length;
     }
 
-    private static void Print(List<Position> map, int lines, int cols, int startLine = 0)
+    private static void Print(List<Position> map, long lines, long cols, long startLine = 0)
     {
         for (var line = startLine; line < lines; line++)
         {

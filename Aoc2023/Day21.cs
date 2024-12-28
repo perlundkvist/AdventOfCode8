@@ -121,7 +121,7 @@ namespace AdventOfCode8.Aoc2023
             return map;
         }
 
-        private record Try (int Line, int Col, int Steps, Direction Direction) 
+        private record Try (long Line, long Col, int Steps, Direction Direction) 
         {
         }
     }

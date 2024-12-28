@@ -33,7 +33,7 @@ internal class Day13 : DayBase
             }
         }
 
-        var cost = 0;
+        var cost = 0L;
 
         //machines.ForEach(m => Console.WriteLine(m));
 
@@ -57,9 +57,9 @@ internal class Day13 : DayBase
 
     }
 
-    private int GetCost((Position A, Position B, Position Prize) machine)
+    private long GetCost((Position A, Position B, Position Prize) machine)
     {
-        var cost = 0;
+        var cost = 0L;
 
         for (var a = 0; a < Math.Min(100, machine.Prize.Col/machine.A.Col); a++)
         {
