@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Xml.Linq;
 using static AdventOfCode8.DayBase;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace AdventOfCode8.Aoc2024;
 
@@ -56,12 +57,21 @@ internal class Day24 : DayBase
 
         if (Logg.DoLog)
         {
+            var wires = new List<string>();
             var zGates = gates.Where(g => g.Key.StartsWith('z')).OrderBy(g => g.Key);
             foreach (var gate in zGates)
             {
-                Logg.WriteLine($"{gate.Key}: {gate.Value.Value} {gate.Value.Inputs[0]} {gate.Value.Op} {gate.Value.Inputs[1]}");
+                if (gate.Value.Op != Gate.Operation.Xor)
+                {
+                    Logg.WriteLine($"{gate.Key}: {gate.Value.Value} {gate.Value.Inputs[0]} {gate.Value.Op} {gate.Value.Inputs[1]}");
+                    wires.Add(gate.Value.Inputs[0]);
+                    wires.Add(gate.Value.Inputs[1]);
+                }
             }
             Console.WriteLine();
+            Console.WriteLine(string.Join(',', wires.Order()));
+            // Not correct: bkh,nng,psw,qtn,vdn,vtg,x26,y26
+
             //var xGates = gates.Where(g => g.Key.StartsWith('x')).OrderBy(g => g.Key);
             //foreach (var gate in xGates)
             //{
@@ -80,9 +90,9 @@ internal class Day24 : DayBase
 
         //Console.WriteLine($"x + y: {xValue + yValue}");
 
-        PrintChain2("x00", gates, "");
-        PrintChain2("x01", gates, "");
-
+        //PrintChain2("x00", gates, "");
+        //PrintChain2("x01", gates, "");
+        ReverseChange("z01", gates, "", 0, 3);
 
     }
 
@@ -118,25 +128,23 @@ internal class Day24 : DayBase
         }
     }
 
-    //private void ReverseChange(string id, Dictionary<string, Gate> gates, string soFar, int depth, int maxDepth)
-    //{
-    //    var gate = gates[id];
-    //    if (depth > maxDepth || )
-    //    {
-    //        Console.WriteLine(soFar);
-    //        return;
-    //    }
+    private void ReverseChange(string id, Dictionary<string, Gate> gates, string soFar, int depth, int maxDepth)
+    {
+        var gate = gates[id];
+        if (depth > maxDepth || id.StartsWith('x'))
+        {
+            Console.WriteLine(soFar);
+            return;
+        }
 
-    //    while (true)
-    //    {
-    //        soFar += id;
-    //        var possible = gates.Where(g => g.Key == gate).ToList();
-    //        foreach (var next in possible)
-    //        {
-    //            ReverseChange(next.Key, gates, soFar + "<-", depth + 1, maxDepth);
-    //        }
-    //    }
-    //}
+        soFar += id;
+        foreach (var input in gate.Inputs)
+        {
+            var inputGate = gates[input];
+            ReverseChange(input, gates, $"{soFar} {inputGate.Op} ", depth + 1, maxDepth);
+        }
+
+    }
 
     private static long GetValue(char id, Dictionary<string, Gate> gates)
     {
