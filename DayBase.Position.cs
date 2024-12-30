@@ -19,6 +19,14 @@ public partial class DayBase
 
     public record Position(long Line, long Col)
     {
+        public static List<Position> Directions =
+        [
+            new(1, 0),
+            new(-1, 0),
+            new(0, 1),
+            new(0, -1)
+        ];
+
         public long ManhattanDistance(Position p2) => Math.Abs(Line - p2.Line) + Math.Abs(Col - p2.Col);
 
         public static long ShoelaceArea(List<Position> area)
@@ -120,12 +128,31 @@ public partial class DayBase
     {
     }
 
-    public record Position<T>(long Line, long Col, T Value) : Position(Line, Col)
+    public record Position<T> : Position
     {
+        public Position(long Line, long Col, T Value) : base(Line, Col)
+        {
+            this.Value = Value;
+        }
+
+        public Position(Position position, T Value) : this(position.Line, position.Col, Value)
+        {
+        }
+
         public Position<T> Move(Position velocity) => new(Line + velocity.Line, Col + velocity.Col, Value);
 
         public Position GetPosition() => new(Line, Col);
+        public T Value { get; init; }
+
+        public void Deconstruct(out long Line, out long Col, out T Value)
+        {
+            Line = this.Line;
+            Col = this.Col;
+            Value = this.Value;
+        }
     }
+
+
 
     public record DPoint(double X, double Y)
     {
