@@ -11,6 +11,8 @@ internal class Day16 : DayBase
 {
     public int Cost = int.MaxValue;
 
+    private List<Position> _allRoutes = [];
+
     internal void Run()
     {
         Logg.DoLog = false;
@@ -33,17 +35,13 @@ internal class Day16 : DayBase
         Print(map);
         //Print(map2);
 
-        GetCheapest(map);
-        Console.WriteLine($"Cost: {Cost}. 84432 is wrong");
-        //var endPos = new Position(map.GetLength(0) - 2, 1);
-        //var startPos = new Position(1, map.GetLength(1) - 2);
-        //var route = AStar(startPos, endPos, map2);
+        //GetCheapest(map);
+        Console.WriteLine($"Cost: {Cost}.");
 
+        Cost = 83432; // Cheat, user answer from Part 1
+        GetRoutes(map);
 
-        //var cost = GetCost(route.ToHashSet());
-        //var cost = GetCost(route);
-
-        //Console.WriteLine($"Cost: {cost}. 84432 is wrong");
+        Console.WriteLine($"Positions on routes: {_allRoutes.Count}. ");
 
         #endregion
 
@@ -112,6 +110,81 @@ internal class Day16 : DayBase
         if (next != null && ShouldTry(next, map))
             moves.Add(new(next, endPos, cost + 1));
         return moves;
+    }
+
+    private void GetRoutes(char[,] map)
+    {
+        var startPos = new Position(map.GetLength(0) - 2, 1);
+        var endPos = new Position(1, map.GetLength(1) - 2);
+        map[endPos.Line, endPos.Col] = '.';
+        if (Logg.DoLog)
+            Print(map);
+        var visited = new Dictionary<Position<Direction>, long>();
+        var moves = new Stack<(Position<Direction> startPos, int cost, List<Position> route)>();
+
+        moves.Push((new Position<Direction>(startPos, Direction.Up), 1000, []));
+        moves.Push((new Position<Direction>(startPos, Direction.Left), 1000, []));
+        moves.Push((new Position<Direction>(startPos, Direction.Down), 1000, []));
+        moves.Push((new Position<Direction>(startPos, Direction.Right), 0, []));
+        while (moves.Any())
+        {
+            var move = moves.Pop();
+            var toAdd = Move(move.startPos, endPos, move.cost, map, visited, move.route);
+            toAdd.ForEach(m => moves.Push(m));
+        }
+    }
+
+    private List<(Position<Direction> startPos, int cost, List<Position> route)> Move(Position<Direction> startPos, Position endPos, int cost, char[,] map, Dictionary<Position<Direction>, long> visited, List<Position> route)
+    {
+        var moves = new List<(Position<Direction> startPos, int cost, List<Position> route)>();
+
+        route.Add(startPos.GetPosition());
+        if (cost > Cost)
+            return [];
+        if (startPos.Line == endPos.Line && startPos.Col == endPos.Col)
+        {
+            if (cost < Cost)
+            {
+                _allRoutes.Clear();
+                _allRoutes.AddRange(route);
+                Cost = cost;
+                Console.WriteLine($"Found new shortest: {cost}.");
+            }
+            else
+            {
+                _allRoutes = _allRoutes.Union(route).ToList();
+                Console.WriteLine($"Found shortest again: {cost}.");
+            }
+            DrawMap2(map, startPos, _allRoutes.ToHashSet());
+            return moves;
+        }
+        //DrawMap2(map, startPos, visited);
+
+        visited[startPos] = cost;
+
+        var surrounding = startPos.GetSurrounding(map);
+        var nextDirection = NextDirection(startPos.Value, Direction.Left);
+        var next = GetNext(nextDirection, surrounding);
+        if (next != null && ShouldTry(next, map))
+        {
+            if (!visited.TryGetValue(next, out var value) || value > cost)
+                moves.Add(new(next, cost + 1001, [.. route]));
+        }
+
+        nextDirection = NextDirection(startPos.Value, Direction.Right);
+        next = GetNext(nextDirection, surrounding);
+        if (next != null && ShouldTry(next, map))
+        {
+            if (!visited.TryGetValue(next, out var value) || value > cost)
+                moves.Add(new(next, cost + 1001, [.. route]));
+        }
+
+        next = GetNext(startPos.Value, startPos.GetSurrounding(map));
+        if (next != null && ShouldTry(next, map))
+            moves.Add(new(next, cost + 1, [.. route]));
+
+        return moves;
+
     }
 
     private Direction NextDirection(Direction direction, Direction turn)
