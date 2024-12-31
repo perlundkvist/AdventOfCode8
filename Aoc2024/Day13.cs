@@ -37,23 +37,22 @@ internal class Day13 : DayBase
 
         //machines.ForEach(m => Console.WriteLine(m));
 
-        foreach (var machine in machines)
-        {
-            //Console.WriteLine(machine);
-            cost += GetCost(machine);
-        }
+        //foreach (var machine in machines)
+        //{
+        //    //Console.WriteLine(machine);
+        //    cost += GetCost(machine);
+        //}
 
-        Console.WriteLine($"Cost: {cost}");
-
-        var primes = 90L.Primes();
 
         var cost2 = 0L;
         foreach (var machine in machines)
         {
-            cost2 += GetCost2(machine, 0);
+            cost += GetCost2(machine, 0);
+            cost2 += GetCost2(machine, 10000000000000);
         }
 
-        Console.WriteLine($"Cost 2: {cost2}");
+        Console.WriteLine($"Cost: {cost}");
+        Console.WriteLine($"Cost 2: {cost2}. 35743889833877 too low");
 
     }
 
@@ -73,12 +72,12 @@ internal class Day13 : DayBase
             if (priceLine != machine.Prize.Line)
                 continue;
             var machineCost = a * 3 + b;
-            if (cost != 0)
-                Console.WriteLine($"Following cost={cost}");
+            //if (cost != 0)
+            //    Console.WriteLine($"Following cost={cost}");
             cost = cost == 0 ? machineCost : Math.Min(cost, machineCost);
-            Console.WriteLine($"a={a}, b={b}, cost={cost}");
+            //Console.WriteLine($"a={a}, b={b}, cost={cost}");
         }
-        Console.WriteLine();
+        //Console.WriteLine();
 
         return cost;
     }
@@ -86,33 +85,34 @@ internal class Day13 : DayBase
     private long GetCost2((Position A, Position B, Position Prize) machine, long addition)
     {
         var cost = 0L;
-        var targetCol = machine.Prize.Col + addition;
-        var targetLine = machine.Prize.Line + addition;
 
-        var tests = targetCol / machine.A.Col;
-        var primes = ((long)machine.B.Col).Primes();
-        var step = primes.Max();
-        for (var a = 0L; a <= tests; a++)
-        {
-            var rest = targetCol - a * machine.A.Col;
-            var mod = rest % machine.B.Col;
-            if (mod != 0)
-                continue;
-            var b = rest / machine.B.Col;
-            Console.WriteLine($"a={a}, b={b}");
-            var line = a * machine.A.Line + b * machine.B.Line;
-            if (line != targetLine)
-            {
-                a += step;
-                continue;
-            }
+        double targetCol = machine.Prize.Col + addition;
+        double targetLine = machine.Prize.Line + addition;
+        
+        //Console.WriteLine(machine);
 
-            var machineCost = a * 3 + b;
-            cost = cost == 0 ? machineCost : Math.Min(cost, machineCost);
-            a += step;
-        }
+        var start = new DPoint(0, targetLine / machine.B.Line);
+        var end = new DPoint(targetLine / machine.A.Line, 0);
+        var l1 = new Line(start, end);
 
+        start = new DPoint(0, targetCol / machine.B.Col);
+        end = new DPoint(targetCol / machine.A.Col, 0);
+        var l2 = new Line(start, end);
+
+        var intersection = l1.GetIntersectionWith(l2);
+        if (intersection == null)
+            return cost;
+
+        var a = Math.Round(intersection.X);
+        var b = Math.Round(intersection.Y);
+        if (Math.Abs(a - intersection.X) > 0.00000001)
+            return cost;
+        if (Math.Abs(b - intersection.Y) > 0.00000001)
+            return cost;
+
+        cost = (long)(a * 3 + b);
         return cost;
+
     }
 
 }
