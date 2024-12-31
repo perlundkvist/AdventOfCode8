@@ -52,7 +52,7 @@ internal class Day13 : DayBase
         }
 
         Console.WriteLine($"Cost: {cost}");
-        Console.WriteLine($"Cost 2: {cost2}. 35743889833877 too low");
+        Console.WriteLine($"Cost 2: {cost2}. 35743889833877 too low. Diff {cost2 - 35743889833877}");
 
     }
 
@@ -103,11 +103,11 @@ internal class Day13 : DayBase
         if (intersection == null)
             return cost;
 
-        var a = Math.Round(intersection.X);
-        var b = Math.Round(intersection.Y);
-        if (Math.Abs(a - intersection.X) > 0.00000001)
+        var a = (long)Math.Round(intersection.X);
+        var b = (long)Math.Round(intersection.Y);
+        if (machine.A.Line * a + machine.B.Line * b != (long) targetLine)
             return cost;
-        if (Math.Abs(b - intersection.Y) > 0.00000001)
+        if (machine.A.Col * a + machine.B.Col * b != (long)targetCol)
             return cost;
 
         cost = (long)(a * 3 + b);
