@@ -61,7 +61,7 @@ internal class Day17 : DayBase
         Registers[1] = 0;
         Registers[2] = 0;
         Execute([0, 3, 5, 4, 3, 0]);
-        Execute2([0, 3, 5, 4, 3, 0]);
+        //Execute2([0, 3, 5, 4, 3, 0]);
 
         Execute2([2, 4, 1, 1, 7, 5, 0, 3, 1, 4, 4, 4, 5, 5, 3, 0]);
 
@@ -73,7 +73,7 @@ internal class Day17 : DayBase
     private void Execute2(List<int> program)
     {
         Output.Clear();
-        for (var i = 0; i < int.MaxValue; i++)
+        for (var i = 1; i < int.MaxValue; i++)
         {
             if (i % 1000000 == 0)
                 Logg.WriteLine($"{i}/{int.MaxValue}");
@@ -91,11 +91,13 @@ internal class Day17 : DayBase
 
                 //Logg.WriteLine($"Program: {string.Join(',', program)}");
                 //Logg.WriteLine($"Output:  {string.Join(',', Output)}");
-                if (Output.SequenceEqual(program))
-                {
-                    Console.WriteLine($"Found: {i}");
-                    break;
-                }
+                if (Output.Count > 0 && Output[0] == 2) 
+                    Console.WriteLine($"Found: {i} {Convert.ToString(i, 2)}");
+                //if (Output.SequenceEqual(program))
+                //{
+                //    Console.WriteLine($"Found: {i}");
+                //    break;
+                //}
             }
             catch
             {
@@ -142,10 +144,11 @@ internal class Day17 : DayBase
                 return idx + 2;
             case 5: // out
                 Output.Add(combo % 8);
-                if (compare && Output.Count > program.Count)
+                if (compare)
+                {
                     return 9999;
-                if (compare && !Output.SequenceEqual(program[..Output.Count]))
-                    return 9999;
+                }
+
                 return idx + 2;
             case 6: // bdv
                 Registers[1] = Registers[0] / (int)Math.Pow(2, combo);
