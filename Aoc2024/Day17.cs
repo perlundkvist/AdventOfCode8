@@ -8,7 +8,7 @@ namespace AdventOfCode8.Aoc2024;
 
 internal class Day17 : DayBase
 {
-    public int[] Registers = new int[3];
+    public long[] Registers = new long[3];
     public List<int> Output = [];
 
 
@@ -73,10 +73,16 @@ internal class Day17 : DayBase
     private void Execute2(List<int> program)
     {
         Output.Clear();
-        for (var i = 1; i < int.MaxValue; i++)
+        var lastFound = 0L;
+        var numFound = 0;
+        for (long i = 1; i < long.MaxValue; i++)
         {
-            if (i % 1000000 == 0)
-                Logg.WriteLine($"{i}/{int.MaxValue}");
+            if (numFound == 50)
+            {
+                break;
+            }
+            //if (i % 1000000 == 0)
+            //    Logg.WriteLine($"{i}/{int.MaxValue}");
             Output.Clear();
             Registers[0] = i;
             Registers[1] = 0;
@@ -86,13 +92,17 @@ internal class Day17 : DayBase
                 var idx = 0;
                 while (idx >= 0 && idx < program.Count)
                 {
-                    idx = Execute(program, idx, true);
+                    idx = Execute(program, idx, 2);
                 }
 
                 //Logg.WriteLine($"Program: {string.Join(',', program)}");
                 //Logg.WriteLine($"Output:  {string.Join(',', Output)}");
-                if (Output.Count > 0 && Output[0] == 2) 
-                    Console.WriteLine($"Found: {i} {Convert.ToString(i, 2)}");
+                if (Output.Count > 2 && Output[0] == program[0] && Output[1] == program[1] && Output[2] == program[2])
+                {
+                    Console.WriteLine($"Found: {i} {Convert.ToString(i, 2)} Diff: {i-lastFound}");
+                    lastFound = i;
+                    numFound++;
+                }
                 //if (Output.SequenceEqual(program))
                 //{
                 //    Console.WriteLine($"Found: {i}");
@@ -120,11 +130,11 @@ internal class Day17 : DayBase
         Logg.WriteLine();
     }
 
-    private int Execute(List<int> program, int idx, bool compare = false)
+    private int Execute(List<int> program, int idx, int breakAt = 20)
     {
         var opcode = program[idx];
         var literal = program[idx + 1];
-        var combo = literal is <= 3 or 7 ? literal : Registers[literal - 4];
+        long combo = literal is <= 3 or 7 ? literal : Registers[literal - 4];
         switch (opcode)
         {
             case 0: // adv
@@ -143,8 +153,8 @@ internal class Day17 : DayBase
                 Registers[1] ^= Registers[2];
                 return idx + 2;
             case 5: // out
-                Output.Add(combo % 8);
-                if (compare)
+                Output.Add((int)(combo % 8));
+                if (Output.Count > breakAt)
                 {
                     return 9999;
                 }
