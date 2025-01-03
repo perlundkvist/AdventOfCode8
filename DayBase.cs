@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace AdventOfCode8
@@ -18,6 +19,9 @@ namespace AdventOfCode8
         {
             try
             {
+                var match = Regex.Match(name, "(\\d{4})_");
+                if (match.Success)
+                    name = $"{match.Groups[1]}\\{name}";
                 return File.ReadAllLines($"..\\..\\..\\input\\{name}.txt").ToList();
             }
             catch (Exception ex)
