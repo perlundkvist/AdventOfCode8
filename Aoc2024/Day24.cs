@@ -14,7 +14,7 @@ internal class Day24 : DayBase
     {
         Logg.DoLog = true;
 
-        var input = GetInput("2024_24");
+        var input = GetInput("2024_24f");
         var start = DateTime.Now;
 
         var gates = new Dictionary<string, Gate>();
@@ -55,94 +55,26 @@ internal class Day24 : DayBase
             gate.Calculate(gates);
         }
 
-        if (Logg.DoLog)
-        {
-            var wires = new List<string>();
-            var zGates = gates.Where(g => g.Key.StartsWith('z')).OrderBy(g => g.Key);
-            foreach (var gate in zGates)
-            {
-                if (gate.Value.Op != Gate.Operation.Xor)
-                {
-                    Logg.WriteLine($"{gate.Key}: {gate.Value.Value} {gate.Value.Inputs[0]} {gate.Value.Op} {gate.Value.Inputs[1]}");
-                    wires.Add(gate.Value.Inputs[0]);
-                    wires.Add(gate.Value.Inputs[1]);
-                }
-            }
-            Console.WriteLine();
-            Console.WriteLine(string.Join(',', wires.Order()));
-            // Not correct: bkh,nng,psw,qtn,vdn,vtg,x26,y26
-
-            //var xGates = gates.Where(g => g.Key.StartsWith('x')).OrderBy(g => g.Key);
-            //foreach (var gate in xGates)
-            //{
-            //    PrintChain(gate.Key, gates);
-            //}
-        }
-
         var output = GetValue('z', gates);
-        Console.WriteLine($"Output {output}");
-        Console.WriteLine($"{DateTime.Now - start}");
+        Console.WriteLine($"Output   {output}");
+        //Console.WriteLine($"{DateTime.Now - start}");
 
-        //var xValue = GetValue('x', gates);
-        //Console.WriteLine($"x: {xValue}");
-        //var yValue = GetValue('y', gates);
-        //Console.WriteLine($"y: {yValue}");
-
-        //Console.WriteLine($"x + y: {xValue + yValue}");
-
-        //PrintChain2("x00", gates, "");
-        //PrintChain2("x01", gates, "");
-        ReverseChange("z01", gates, "", 0, 3);
-
-    }
-
-    private void PrintChain(string id, Dictionary<string, Gate> gates)
-    {
-        while (true)
-        {
-            Console.Write(id);
-            if (id.StartsWith("z"))
-                break;
-            var possible = gates.Where(g => g.Value.Inputs.Any(i => i == id)).ToList();
-            id = gates.First(g => g.Value.Inputs.Any(i => i == id)).Key;
-            Console.Write("->");
-        }
+        // Part 2
+        var x = GetValue('x', gates);
+        var y = GetValue('y', gates);
+        var expected = x + y;
+        Console.WriteLine($"Expected {expected}");
+        Console.WriteLine($"Diff {expected-output}");
         Console.WriteLine();
-    }
+        Console.WriteLine("              4         3         2         1");
+        Console.WriteLine("         5432109876543210987654321098765432109876543210");
+        Console.WriteLine($"Output   {Convert.ToString(output, 2)}");
+        Console.WriteLine($"Expected {Convert.ToString(expected, 2)}");
 
-    private void PrintChain2(string id, Dictionary<string, Gate> gates, string soFar)
-    {
-        while (true)
-        {
-            soFar += id;
-            if (id.StartsWith("z") || soFar.Length > 20)
-            {
-                Console.WriteLine(soFar);
-                break;
-            }
-            var possible = gates.Where(g => g.Value.Inputs.Any(i => i == id)).ToList();
-            foreach (var next in possible)
-            {
-                PrintChain2(next.Key, gates, soFar + "->");
-            }
-        }
-    }
+        // https://circuitverse.org/simulator
 
-    private void ReverseChange(string id, Dictionary<string, Gate> gates, string soFar, int depth, int maxDepth)
-    {
-        var gate = gates[id];
-        if (depth > maxDepth || id.StartsWith('x'))
-        {
-            Console.WriteLine(soFar);
-            return;
-        }
-
-        soFar += id;
-        foreach (var input in gate.Inputs)
-        {
-            var inputGate = gates[input];
-            ReverseChange(input, gates, $"{soFar} {inputGate.Op} ", depth + 1, maxDepth);
-        }
+        var changedGates = new List<string> { "kth", "z12", "gsd", "z26", "tbt", "z32", "vpm", "qnf" };
+        Console.WriteLine($"Swapped wires  {string.Join(',', changedGates.Order())}");
 
     }
 
