@@ -16,51 +16,51 @@ internal class Day17 : DayBase
     {
         Logg.DoLog = true;
 
-        Registers[0] = 0;
-        Registers[1] = 0;
-        Registers[2] = 9;
-        Execute([2, 6]);
+        //Registers[0] = 0;
+        //Registers[1] = 0;
+        //Registers[2] = 9;
+        //Execute([2, 6]);
 
-        Registers[0] = 10;
-        Registers[1] = 0;
-        Registers[2] = 0;
-        Execute([5, 0, 5, 1, 5, 4]);
+        //Registers[0] = 10;
+        //Registers[1] = 0;
+        //Registers[2] = 0;
+        //Execute([5, 0, 5, 1, 5, 4]);
 
-        Registers[0] = 2024;
-        Registers[1] = 0;
-        Registers[2] = 0;
-        Execute([0, 1, 5, 4, 3, 0]);
+        //Registers[0] = 2024;
+        //Registers[1] = 0;
+        //Registers[2] = 0;
+        //Execute([0, 1, 5, 4, 3, 0]);
 
-        Registers[0] = 0;
-        Registers[1] = 29;
-        Registers[2] = 0;
-        Execute([1, 7]);
+        //Registers[0] = 0;
+        //Registers[1] = 29;
+        //Registers[2] = 0;
+        //Execute([1, 7]);
 
-        Registers[0] = 0;
-        Registers[1] = 2024;
-        Registers[2] = 43690;
-        Execute([4, 0]);
+        //Registers[0] = 0;
+        //Registers[1] = 2024;
+        //Registers[2] = 43690;
+        //Execute([4, 0]);
 
-        Registers[0] = 729;
-        Registers[1] = 0;
-        Registers[2] = 0;
-        Execute([0, 1, 5, 4, 3, 0]);
+        //Registers[0] = 729;
+        //Registers[1] = 0;
+        //Registers[2] = 0;
+        //Execute([0, 1, 5, 4, 3, 0]);
 
         #region Part 1
 
-        Registers[0] = 30886132;
-        Registers[1] = 0;
-        Registers[2] = 0;
-        Execute([2, 4, 1, 1, 7, 5, 0, 3, 1, 4, 4, 4, 5, 5, 3, 0]);
+        //Registers[0] = 30886132;
+        //Registers[1] = 0;
+        //Registers[2] = 0;
+        //Execute([2, 4, 1, 1, 7, 5, 0, 3, 1, 4, 4, 4, 5, 5, 3, 0]);
 
         #endregion
 
         #region Part 2
 
-        Registers[0] = 117440;
-        Registers[1] = 0;
-        Registers[2] = 0;
-        Execute([0, 3, 5, 4, 3, 0]);
+        //Registers[0] = 117440;
+        //Registers[1] = 0;
+        //Registers[2] = 0;
+        //Execute([0, 3, 5, 4, 3, 0]);
         //Execute2([0, 3, 5, 4, 3, 0]);
 
         Execute2([2, 4, 1, 1, 7, 5, 0, 3, 1, 4, 4, 4, 5, 5, 3, 0]);
@@ -75,9 +75,10 @@ internal class Day17 : DayBase
         Output.Clear();
         var lastFound = 0L;
         var numFound = 0;
-        for (long i = 1; i < long.MaxValue; i++)
+        var numTest = 6;
+        for (long i = 14690858; i < long.MaxValue; i++)
         {
-            if (numFound == 50)
+            if (numFound == 100)
             {
                 break;
             }
@@ -92,16 +93,28 @@ internal class Day17 : DayBase
                 var idx = 0;
                 while (idx >= 0 && idx < program.Count)
                 {
-                    idx = Execute(program, idx, 2);
+                    idx = Execute(program, idx, numTest);
                 }
 
                 //Logg.WriteLine($"Program: {string.Join(',', program)}");
                 //Logg.WriteLine($"Output:  {string.Join(',', Output)}");
-                if (Output.Count > 2 && Output[0] == program[0] && Output[1] == program[1] && Output[2] == program[2])
+                if (Output.Count >= numTest)
                 {
-                    Console.WriteLine($"Found: {i} {Convert.ToString(i, 2)} Diff: {i-lastFound}");
-                    lastFound = i;
-                    numFound++;
+                    var found = true;
+                    for (var j = 0; j < numTest; j++)
+                    {
+                        if (Output[j] == program[j]) 
+                            continue;
+                        found = false;
+                        break;
+                    }
+
+                    if (found)
+                    {
+                        Console.WriteLine($"Found: {i} {Convert.ToString(i, 16).PadLeft(8, '0')} Diff: {i - lastFound}");
+                        lastFound = i;
+                        numFound++;
+                    }
                 }
                 //if (Output.SequenceEqual(program))
                 //{
