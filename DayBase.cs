@@ -11,7 +11,7 @@ namespace AdventOfCode8
 {
     public partial class DayBase
     {
-        public enum Direction { Left, Right, Up, Down }
+        public enum Direction { Left, Up, Right, Down }
 
         public static Logger Logg = new Logger();
 
